@@ -193,6 +193,42 @@ const CLIENT_EMAIL = 'finanzas-app@app-finanzas-490205.iam.gserviceaccount.com';
 const SHEET_NAME = 'Gastos';
 const HEADERS = ['Date','Amount','Category','Subcategory','Description','Type','Paid_by','Pablo_amount','Julieta_amount'];
 const STORAGE_KEY = 'vagonetas_private_key';
+const DB_NAME = 'vagonetas_db';
+const DB_STORE = 'config';
+
+// IndexedDB helpers
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(DB_STORE);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbGet(key) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(DB_STORE).objectStore(DB_STORE).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbSet(key, value) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(DB_STORE,'readwrite').objectStore(DB_STORE).put(value, key);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbDelete(key) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(DB_STORE,'readwrite').objectStore(DB_STORE).delete(key);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
 
 const categorias = {
   "Groceries": ["Supermarket","Alcohol"],
@@ -222,13 +258,15 @@ document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
-// Auto-conectar si hay key guardada
-window.addEventListener('load', () => {
-  const savedKey = localStorage.getItem(STORAGE_KEY);
-  if (savedKey) {
-    document.getElementById('private-key-input').value = savedKey;
-    conectar(true);
-  }
+// Auto-conectar si hay key guardada en IndexedDB
+window.addEventListener('load', async () => {
+  try {
+    const savedKey = await dbGet(STORAGE_KEY);
+    if (savedKey) {
+      document.getElementById('private-key-input').value = savedKey;
+      conectar(true);
+    }
+  } catch(e) { console.log('No hay key guardada'); }
 });
 
 function showToast(msg, isError=false) {
@@ -245,7 +283,7 @@ function setStatus(connected, text) {
 }
 
 function desconectar() {
-  localStorage.removeItem(STORAGE_KEY);
+  dbDelete(STORAGE_KEY).catch(()=>{});
   privateKey=''; accessToken=''; tokenExpiry=0; isConnected=false;
   gastos=[];
   document.getElementById('setup-section').style.display='block';
@@ -289,14 +327,14 @@ async function conectar(silencioso=false) {
     const token=await getAccessToken();
     await initSheet(token);
     await loadExistingData(token);
-    localStorage.setItem(STORAGE_KEY, keyInput);
+    await dbSet(STORAGE_KEY, keyInput);
     document.getElementById('setup-section').style.display='none';
     setStatus(true,'online');
     if (!silencioso) showToast('conectado y guardado');
   } catch(e) {
     setStatus(false,'error');
     showToast('error: '+e.message,true);
-    localStorage.removeItem(STORAGE_KEY);
+    dbDelete(STORAGE_KEY).catch(()=>{});
   }
 }
 
