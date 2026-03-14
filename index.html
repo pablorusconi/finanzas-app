@@ -12,84 +12,65 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Cormorant Garamond', Georgia, serif; background: #141412; min-height: 100vh; color: #E8DCC3; font-size: 16px; }
 .app { max-width: 420px; margin: 0 auto; padding: 1rem; }
-
 .header { text-align: center; padding: 1.5rem 0 1rem; border-bottom: 1px solid #2d6b4a; margin-bottom: 1.25rem; position: relative; }
 .header-logo { width: 52px; height: 52px; border-radius: 12px; margin: 0 auto 8px; display: block; }
 .header h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 30px; font-weight: 700; color: #E8DCC3; letter-spacing: 5px; text-transform: uppercase; }
 .header-sub { font-size: 13px; color: #2d8a52; letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; font-weight: 300; }
 .status-area { position: absolute; top: 1.5rem; right: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.status-text { font-size: 11px; color: #666; display: flex; align-items: center; gap: 4px; font-family: 'Cormorant Garamond', serif; }
+.status-text { font-size: 11px; color: #666; display: flex; align-items: center; gap: 4px; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #444; }
 .status-dot.connected { background: #2d8a52; }
 .status-dot.error { background: #8a2d2d; }
-.disconnect-btn { font-size: 10px; color: #555; background: none; border: none; cursor: pointer; font-family: 'Cormorant Garamond', serif; letter-spacing: 1px; text-decoration: underline; padding: 0; }
-.disconnect-btn:hover { color: #8a2d2d; }
-
 .divider { display: flex; align-items: center; gap: 10px; margin: 0.75rem 0; color: #2d6b4a; font-size: 13px; font-style: italic; }
 .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #2d6b4a; }
-
 .tab-bar { display: flex; gap: 0; border: 1px solid #2d6b4a; border-radius: 4px; overflow: hidden; margin-bottom: 1.25rem; }
 .tab { flex: 1; padding: 10px 0; font-size: 13px; text-align: center; cursor: pointer; border: none; background: transparent; color: #666; font-family: 'Cormorant Garamond', serif; letter-spacing: 2px; text-transform: uppercase; border-right: 1px solid #2d6b4a; transition: all 0.15s; }
 .tab:last-child { border-right: none; }
 .tab.active { background: #2d6b4a; color: #E8DCC3; }
-
 .card { background: #1c1c18; border: 1px solid #2d6b4a; border-radius: 4px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
-
-.balance-label { font-size: 11px; color: #2d8a52; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; font-weight: 400; }
+.balance-label { font-size: 11px; color: #2d8a52; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
 .balance-amount { font-family: 'Playfair Display', Georgia, serif; font-size: 42px; font-weight: 600; color: #E8DCC3; line-height: 1; }
 .balance-sub { font-size: 14px; color: #666; margin-top: 6px; letter-spacing: 1px; font-style: italic; }
 .balance-positive { color: #2d8a52; }
 .balance-negative { color: #8a4a2d; }
-
 .field { margin-bottom: 14px; }
-.field label { display: block; font-size: 11px; color: #2d8a52; margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; font-weight: 400; }
+.field label { display: block; font-size: 11px; color: #2d8a52; margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; }
 .field input, .field select { width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid #2d6b4a; border-radius: 3px; background: #141412; color: #E8DCC3; font-family: 'Cormorant Garamond', serif; outline: none; transition: border-color 0.15s; }
 .field input:focus, .field select:focus { border-color: #2d8a52; }
 .field select option { background: #141412; }
 .field input::placeholder { color: #444; font-style: italic; }
-
 .toggle-row { display: flex; gap: 0; border: 1px solid #2d6b4a; border-radius: 3px; overflow: hidden; }
 .toggle-btn { flex: 1; padding: 11px 0; font-size: 12px; border: none; border-right: 1px solid #2d6b4a; background: #141412; color: #555; cursor: pointer; font-family: 'Cormorant Garamond', serif; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; }
 .toggle-btn:last-child { border-right: none; }
 .toggle-btn.active-compartido { background: #1a3d28; color: #4db87a; }
 .toggle-btn.active-pablo { background: #1a2a3d; color: #6a9fd8; }
 .toggle-btn.active-julieta { background: #3d1a2a; color: #d86a9f; }
-
 .payer-row { display: flex; gap: 0; border: 1px solid #2d6b4a; border-radius: 3px; overflow: hidden; }
 .payer-btn { flex: 1; padding: 11px 0; font-size: 14px; border: none; border-right: 1px solid #2d6b4a; background: #141412; color: #555; cursor: pointer; font-family: 'Cormorant Garamond', serif; letter-spacing: 2px; text-transform: uppercase; transition: all 0.15s; }
 .payer-btn:last-child { border-right: none; }
 .payer-btn.active { background: #2d6b4a; color: #E8DCC3; }
-
 .submit-btn { width: 100%; padding: 13px; font-size: 14px; border: 1px solid #2d8a52; border-radius: 3px; background: #1a3d28; color: #E8DCC3; cursor: pointer; margin-top: 4px; font-family: 'Cormorant Garamond', serif; letter-spacing: 4px; text-transform: uppercase; transition: all 0.15s; }
 .submit-btn:hover { background: #2d6b4a; }
 .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
 .expense-item { background: #1c1c18; border: 1px solid #2a2a24; border-radius: 3px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; transition: border-color 0.15s; }
 .expense-item:hover { border-color: #2d6b4a; }
-.expense-cat { font-size: 15px; color: #E8DCC3; font-family: 'Cormorant Garamond', serif; font-weight: 500; }
+.expense-cat { font-size: 15px; color: #E8DCC3; font-weight: 500; }
 .expense-subcat { font-size: 11px; color: #2d8a52; letter-spacing: 1px; text-transform: uppercase; }
 .expense-meta { font-size: 12px; color: #555; margin-top: 3px; font-style: italic; }
 .expense-amount { font-family: 'Playfair Display', Georgia, serif; font-size: 17px; color: #E8DCC3; text-align: right; font-weight: 600; }
-.expense-badge { font-size: 10px; padding: 2px 7px; border-radius: 2px; margin-top: 4px; display: inline-block; letter-spacing: 1px; text-transform: uppercase; font-family: 'Cormorant Garamond', serif; }
+.expense-badge { font-size: 10px; padding: 2px 7px; border-radius: 2px; margin-top: 4px; display: inline-block; letter-spacing: 1px; text-transform: uppercase; }
 .badge-compartido { background: #1a3d28; color: #4db87a; border: 1px solid #2d6b4a; }
 .badge-pablo { background: #1a2a3d; color: #6a9fd8; border: 1px solid #2a4a6b; }
 .badge-julieta { background: #3d1a2a; color: #d86a9f; border: 1px solid #6b2a4a; }
-
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .stat-box { background: #141412; border: 1px solid #2d6b4a; border-radius: 3px; padding: 12px; }
 .stat-label { font-size: 10px; color: #2d8a52; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
 .stat-value { font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: #E8DCC3; font-weight: 600; }
-
-.setup-field { margin-bottom: 12px; }
-.setup-field label { display: block; font-size: 11px; color: #2d8a52; margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; }
-.setup-field input { width: 100%; padding: 10px 12px; font-size: 13px; border: 1px solid #2d6b4a; border-radius: 3px; background: #141412; color: #E8DCC3; font-family: monospace; }
-.connect-btn { width: 100%; padding: 12px; font-size: 13px; border: 1px solid #2d8a52; border-radius: 3px; background: #141412; color: #E8DCC3; cursor: pointer; font-family: 'Cormorant Garamond', serif; letter-spacing: 4px; text-transform: uppercase; transition: all 0.15s; margin-bottom: 0; }
-.connect-btn:hover { background: #1a3d28; }
-
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a3d28; border: 1px solid #2d8a52; color: #E8DCC3; padding: 10px 22px; border-radius: 3px; font-size: 13px; font-family: 'Cormorant Garamond', serif; letter-spacing: 2px; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; z-index: 999; font-style: italic; }
 .toast.show { opacity: 1; }
 .toast.error-toast { background: #3d1a1a; border-color: #8a2d2d; }
 .empty-state { text-align: center; padding: 3rem 1rem; color: #444; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; font-style: italic; }
+.connecting-screen { text-align: center; padding: 3rem 1rem; color: #2d8a52; font-size: 14px; letter-spacing: 3px; text-transform: uppercase; font-style: italic; }
 </style>
 </head>
 <body>
@@ -103,87 +84,78 @@ body { font-family: 'Cormorant Garamond', Georgia, serif; background: #141412; m
     <div class="status-area">
       <div class="status-text">
         <span class="status-dot" id="status-dot"></span>
-        <span id="status-text">offline</span>
+        <span id="status-text">conectando...</span>
       </div>
-      <button class="disconnect-btn" id="disconnect-btn" onclick="desconectar()" style="display:none;">desconectar</button>
     </div>
   </div>
 
-  <div class="card" id="setup-section">
-    <div class="divider">conexión</div>
-    <div class="setup-field">
-      <label>Private Key</label>
-      <input type="password" id="private-key-input" placeholder="-----BEGIN RSA PRIVATE KEY-----..." />
+  <div id="main-content" style="display:none;">
+    <div class="tab-bar">
+      <button class="tab active" onclick="showTab('cargar')">Cargar</button>
+      <button class="tab" onclick="showTab('historial')">Historial</button>
+      <button class="tab" onclick="showTab('saldo')">Saldo</button>
     </div>
-    <div class="setup-field">
-      <label>Sheet ID</label>
-      <input type="text" value="1zvOKdJvDo9kwuPbsXm1o9I5SgNV_R-OxUn7oEmskdIY" readonly style="opacity:0.5; width:100%; padding:10px 12px; font-size:12px; border:1px solid #2d6b4a; border-radius:3px; background:#141412; color:#E8DCC3; font-family:monospace;" />
-    </div>
-    <button class="connect-btn" onclick="conectar()">Conectar</button>
-  </div>
 
-  <div class="tab-bar">
-    <button class="tab active" onclick="showTab('cargar')">Cargar</button>
-    <button class="tab" onclick="showTab('historial')">Historial</button>
-    <button class="tab" onclick="showTab('saldo')">Saldo</button>
-  </div>
-
-  <div id="tab-cargar">
-    <div class="card">
-      <div class="balance-label">Saldo actual</div>
-      <div class="balance-amount" id="balance-main">$0.00</div>
-      <div class="balance-sub" id="balance-desc">sin movimientos</div>
-    </div>
-    <div class="card">
-      <div class="field"><label>Fecha</label><input type="date" id="fecha" /></div>
-      <div class="field"><label>Monto (AUD)</label><input type="number" id="monto" placeholder="0.00" step="0.01" min="0" /></div>
-      <div class="field">
-        <label>Categoría</label>
-        <select id="categoria" onchange="updateSubcategorias()"><option value="">— seleccionar —</option></select>
+    <div id="tab-cargar">
+      <div class="card">
+        <div class="balance-label">Saldo actual</div>
+        <div class="balance-amount" id="balance-main">$0.00</div>
+        <div class="balance-sub" id="balance-desc">sin movimientos</div>
       </div>
-      <div class="field">
-        <label>Subcategoría</label>
-        <select id="subcategoria"><option value="">— primero elegí categoría —</option></select>
-      </div>
-      <div class="field"><label>Descripción</label><input type="text" id="descripcion" placeholder="detalle del gasto..." /></div>
-      <div class="field">
-        <label>Tipo de gasto</label>
-        <div class="toggle-row">
-          <button class="toggle-btn active-compartido" id="tipo-compartido" onclick="setTipo('compartido')">Compartido</button>
-          <button class="toggle-btn" id="tipo-pablo" onclick="setTipo('pablo')">Pablo</button>
-          <button class="toggle-btn" id="tipo-julieta" onclick="setTipo('julieta')">Julieta</button>
+      <div class="card">
+        <div class="field"><label>Fecha</label><input type="date" id="fecha" /></div>
+        <div class="field"><label>Monto (AUD)</label><input type="number" id="monto" placeholder="0.00" step="0.01" min="0" /></div>
+        <div class="field">
+          <label>Categoría</label>
+          <select id="categoria" onchange="updateSubcategorias()"><option value="">— seleccionar —</option></select>
         </div>
-      </div>
-      <div class="field" style="margin-top:14px;">
-        <label>¿Quién pagó?</label>
-        <div class="payer-row">
-          <button class="payer-btn active" id="payer-pablo" onclick="setPayer('pablo')">Pablo</button>
-          <button class="payer-btn" id="payer-julieta" onclick="setPayer('julieta')">Julieta</button>
+        <div class="field">
+          <label>Subcategoría</label>
+          <select id="subcategoria"><option value="">— primero elegí categoría —</option></select>
         </div>
+        <div class="field"><label>Descripción</label><input type="text" id="descripcion" placeholder="detalle del gasto..." /></div>
+        <div class="field">
+          <label>Tipo de gasto</label>
+          <div class="toggle-row">
+            <button class="toggle-btn active-compartido" id="tipo-compartido" onclick="setTipo('compartido')">Compartido</button>
+            <button class="toggle-btn" id="tipo-pablo" onclick="setTipo('pablo')">Pablo</button>
+            <button class="toggle-btn" id="tipo-julieta" onclick="setTipo('julieta')">Julieta</button>
+          </div>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label>¿Quién pagó?</label>
+          <div class="payer-row">
+            <button class="payer-btn active" id="payer-pablo" onclick="setPayer('pablo')">Pablo</button>
+            <button class="payer-btn" id="payer-julieta" onclick="setPayer('julieta')">Julieta</button>
+          </div>
+        </div>
+        <div class="divider" style="margin:14px 0 10px;">✦</div>
+        <button class="submit-btn" id="submit-btn" onclick="agregarGasto()">Registrar gasto</button>
       </div>
-      <div class="divider" style="margin:14px 0 10px;">✦</div>
-      <button class="submit-btn" id="submit-btn" onclick="agregarGasto()">Registrar gasto</button>
+    </div>
+
+    <div id="tab-historial" style="display:none;">
+      <div id="expense-list"><div class="empty-state">— sin registros —</div></div>
+    </div>
+
+    <div id="tab-saldo" style="display:none;">
+      <div class="card">
+        <div class="balance-label">Resumen general</div>
+        <div class="balance-amount" id="saldo-total">$0.00</div>
+        <div class="balance-sub" id="saldo-desc">sin movimientos</div>
+      </div>
+      <div class="divider">desglose</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-label">Pablo pagó</div><div class="stat-value" id="pablo-pago">$0.00</div></div>
+        <div class="stat-box"><div class="stat-label">Julieta pagó</div><div class="stat-value" id="julieta-pago">$0.00</div></div>
+        <div class="stat-box"><div class="stat-label">Gastos Pablo</div><div class="stat-value" id="pablo-gastos">$0.00</div></div>
+        <div class="stat-box"><div class="stat-label">Gastos Julieta</div><div class="stat-value" id="julieta-gastos">$0.00</div></div>
+      </div>
     </div>
   </div>
 
-  <div id="tab-historial" style="display:none;">
-    <div id="expense-list"><div class="empty-state">— sin registros —</div></div>
-  </div>
-
-  <div id="tab-saldo" style="display:none;">
-    <div class="card">
-      <div class="balance-label">Resumen general</div>
-      <div class="balance-amount" id="saldo-total">$0.00</div>
-      <div class="balance-sub" id="saldo-desc">sin movimientos</div>
-    </div>
-    <div class="divider">desglose</div>
-    <div class="stat-grid">
-      <div class="stat-box"><div class="stat-label">Pablo pagó</div><div class="stat-value" id="pablo-pago">$0.00</div></div>
-      <div class="stat-box"><div class="stat-label">Julieta pagó</div><div class="stat-value" id="julieta-pago">$0.00</div></div>
-      <div class="stat-box"><div class="stat-label">Gastos Pablo</div><div class="stat-value" id="pablo-gastos">$0.00</div></div>
-      <div class="stat-box"><div class="stat-label">Gastos Julieta</div><div class="stat-value" id="julieta-gastos">$0.00</div></div>
-    </div>
-  </div>
+  <div id="connecting-screen" class="connecting-screen">— iniciando —</div>
+  <div id="error-screen" style="display:none; text-align:center; padding:2rem; color:#8a2d2d; font-size:13px; letter-spacing:2px; font-style:italic;">— error de conexión —<br><small id="error-msg" style="font-size:11px; margin-top:8px; display:block;"></small></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
@@ -192,43 +164,34 @@ const SHEET_ID = '1zvOKdJvDo9kwuPbsXm1o9I5SgNV_R-OxUn7oEmskdIY';
 const CLIENT_EMAIL = 'finanzas-app@app-finanzas-490205.iam.gserviceaccount.com';
 const SHEET_NAME = 'Gastos';
 const HEADERS = ['Date','Amount','Category','Subcategory','Description','Type','Paid_by','Pablo_amount','Julieta_amount'];
-const STORAGE_KEY = 'vagonetas_private_key';
-const DB_NAME = 'vagonetas_db';
-const DB_STORE = 'config';
-
-// IndexedDB helpers
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = e => e.target.result.createObjectStore(DB_STORE);
-    req.onsuccess = e => resolve(e.target.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-async function dbGet(key) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const req = db.transaction(DB_STORE).objectStore(DB_STORE).get(key);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-async function dbSet(key, value) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const req = db.transaction(DB_STORE,'readwrite').objectStore(DB_STORE).put(value, key);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
-  });
-}
-async function dbDelete(key) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const req = db.transaction(DB_STORE,'readwrite').objectStore(DB_STORE).delete(key);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
-  });
-}
+const PRIVATE_KEY = `-----BEGIN PRIVATE KEY-----
+MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDBnYB8FDsp1wk/
+qx10fxnwWylEn3GNqFGPL9kYfeaqk9c2o/QNaM7V87OFLwMGLnN3uDMkTSjTAIiu
+T0Q0XKFu+uiFI6D+MuXl5bGSmDg1MiNwcOE8tgfa5KLm3PMQExjaDi2+aLvJveFo
+WTCerlbCnQOGXOzfLXl2AxkGg1SDlEbvLHl5l1Oiqpae2ZDc7v3e1ZoZVpDE677K
+pbmbapzUlQ+XrR8lWLs61k4/hTC2zZ1Nv62h5YRyS1NvYnqdOfDeFRT3B7Bjy/6U
+Z7h/rnQ+Uacjl9pPeo3fdxCLdrODlpuqm1jGAFVRDXt5A67zAXGG03UvhX6dYAEa
+0rcM1RclAgMBAAECggEABYwjeQqkWlHKtkwLE0IsBla6UzjFSmOC+LkMfZbn48XK
+IgrnDHZPDNLHdz6uVcBBdzHsJzNdwtPuVp43TE/GIVWnkV8Atx/StfhTkulxHNcT
+rF5Tmcd2aKdp4nb8sN53NRI4bc726HQcD/8UNUu1+SwCBJjHgap+Iys6DZV4N6/c
+Zp/LPgMen9T+Kyweq3my1Mfn9WluKCyS0YcZuFQ/eX2MyG3fOa2USbyZn+onW7Sk
+lSw2qqhmdbUqciIyH/+20wfQDxVGjhY8Dy+vrNatHaxisolTyQPueLat47yRf8Vy
+9FEeBi4GdKeHCeRp76lRwn42Q8k7Iti2+LFjlxt/gQKBgQDoDX+NbzcZkbSLPAxb
+rOswSGURBEpIlirm2LvYPeSVWCgD6JCJ21uW66Qv73SVybn2OXACbcPVtA6lx6UD
+9fpJw0tPahQqY3CWndR8JiAOp6+gFWYyOYShnaKwn8HzZgx2lUGgBZzlHf4Y4q4D
++49L82txufjz9T3A2cl5HiP4gQKBgQDVmIpHCRDCiuU1DB9WB+qtCnYGOhyZN/Vd
+8mbdQDdbiYK4LsRJRr5Ust7n4TAYVn8UADIbOBN85gd8xeJxWAbcI5jZklvm4pAU
+Oy9+IJbSVbQ2K1T1CIlNEXHcGQrqQ6bhZEcZirNPqNICPpxP2f9DOEVzsiZWFvWG
+PV/GZw/spQKBgQCflHDMRdhBiDb9rVzeSqsueAqwyh9/jW2RdSixC9c/cPGLxopn
+k2eIASLXKDgnriNplZRWxz9unjWYghQUBjuKMHiA83VMtTe/DGkMu3c+PMkFMNIn
+5fA06F/yUNsjVGFrxzbrIhEEazzLxk9fQ8cGty6Ddh4jPtqp3du0pCqegQKBgECO
+ujx+IPKryFsgLthxzBxA7Ss0pTAqGZ8rhKuanSCtjzTb7be4Cg7PgU/UYBT7D62b
+4YkYictWOy0bIjXfxTMED06zTdOa5rE2skQM1Yj9HlrA/gyRZ+5DN4auiv4DNI0r
+IdI2ebu56r+C7Pu1h9FpUJSHY87hYZQROMFepRGBAoGBANq5/v7N7xua0wg9JCav
+0/QDvdnpQv9SqwbQSiju8kpRkcvcjVbUia6tgNfblJl4gdr/tb2RBMEEBDX5k3iu
+EvQ6ljzYHanUilrGrul45vBh33eTC7phkUBhm+0A/I6kie7UXGx5cuRGG240ASDL
+59nc2feX5cLB043NGImSSPUu
+-----END PRIVATE KEY-----`;
 
 const categorias = {
   "Groceries": ["Supermarket","Alcohol"],
@@ -250,24 +213,13 @@ const categorias = {
 };
 
 let gastos=[], tipoActual='compartido', payerActual='pablo';
-let privateKey='', accessToken='', tokenExpiry=0, isConnected=false;
+let accessToken='', tokenExpiry=0;
 
 const catSelect = document.getElementById('categoria');
 Object.keys(categorias).forEach(cat => { const o=document.createElement('option'); o.value=cat; o.textContent=cat; catSelect.appendChild(o); });
 document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
-
-// Auto-conectar si hay key guardada en IndexedDB
-window.addEventListener('load', async () => {
-  try {
-    const savedKey = await dbGet(STORAGE_KEY);
-    if (savedKey) {
-      document.getElementById('private-key-input').value = savedKey;
-      conectar(true);
-    }
-  } catch(e) { console.log('No hay key guardada'); }
-});
 
 function showToast(msg, isError=false) {
   const t=document.getElementById('toast');
@@ -276,27 +228,14 @@ function showToast(msg, isError=false) {
 }
 
 function setStatus(connected, text) {
-  isConnected=connected;
   document.getElementById('status-dot').className='status-dot '+(connected?'connected':(text==='error'?'error':''));
   document.getElementById('status-text').textContent=text;
-  document.getElementById('disconnect-btn').style.display=connected?'block':'none';
-}
-
-function desconectar() {
-  dbDelete(STORAGE_KEY).catch(()=>{});
-  privateKey=''; accessToken=''; tokenExpiry=0; isConnected=false;
-  gastos=[];
-  document.getElementById('setup-section').style.display='block';
-  document.getElementById('private-key-input').value='';
-  setStatus(false,'offline');
-  renderHistorial(); calcularSaldo();
-  showToast('desconectado');
 }
 
 async function getAccessToken() {
   if (accessToken && Date.now()<tokenExpiry) return accessToken;
   const now=Math.floor(Date.now()/1000);
-  const jwt=KJUR.jws.JWS.sign('RS256',JSON.stringify({alg:'RS256',typ:'JWT'}),JSON.stringify({iss:CLIENT_EMAIL,scope:'https://www.googleapis.com/auth/spreadsheets',aud:'https://oauth2.googleapis.com/token',exp:now+3600,iat:now}),privateKey);
+  const jwt=KJUR.jws.JWS.sign('RS256',JSON.stringify({alg:'RS256',typ:'JWT'}),JSON.stringify({iss:CLIENT_EMAIL,scope:'https://www.googleapis.com/auth/spreadsheets',aud:'https://oauth2.googleapis.com/token',exp:now+3600,iat:now}),PRIVATE_KEY);
   const res=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`});
   const data=await res.json();
   if (!data.access_token) throw new Error('Token error: '+JSON.stringify(data));
@@ -318,25 +257,23 @@ async function loadExistingData(token) {
   renderHistorial(); calcularSaldo();
 }
 
-async function conectar(silencioso=false) {
-  const keyInput=document.getElementById('private-key-input').value.trim();
-  if (!keyInput) { showToast('ingresá la private key',true); return; }
-  privateKey=keyInput.replace(/\\n/g,'\n');
-  setStatus(false,'conectando...');
+async function iniciar() {
   try {
     const token=await getAccessToken();
     await initSheet(token);
     await loadExistingData(token);
-    await dbSet(STORAGE_KEY, keyInput);
-    document.getElementById('setup-section').style.display='none';
+    document.getElementById('connecting-screen').style.display='none';
+    document.getElementById('main-content').style.display='block';
     setStatus(true,'online');
-    if (!silencioso) showToast('conectado y guardado');
   } catch(e) {
+    document.getElementById('connecting-screen').style.display='none';
+    document.getElementById('error-screen').style.display='block';
+    document.getElementById('error-msg').textContent=e.message;
     setStatus(false,'error');
-    showToast('error: '+e.message,true);
-    dbDelete(STORAGE_KEY).catch(()=>{});
   }
 }
+
+window.addEventListener('load', iniciar);
 
 function updateSubcategorias() {
   const cat=document.getElementById('categoria').value, sub=document.getElementById('subcategoria');
@@ -382,13 +319,11 @@ async function agregarGasto() {
   const row=[fecha,monto,categoria,subcategoria,descripcion,tipoActual,payerActual,pA.toFixed(2),jA.toFixed(2)];
   const btn=document.getElementById('submit-btn');
   btn.disabled=true; btn.textContent='registrando...';
-  if(isConnected){
-    try {
-      const token=await getAccessToken();
-      await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[row]})});
-      showToast('registrado');
-    } catch(e){showToast('error: '+e.message,true);btn.disabled=false;btn.textContent='registrar gasto';return;}
-  } else { showToast('guardado localmente'); }
+  try {
+    const token=await getAccessToken();
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[row]})});
+    showToast('registrado');
+  } catch(e){showToast('error: '+e.message,true);btn.disabled=false;btn.textContent='registrar gasto';return;}
   gastos.unshift({fecha,monto,categoria,subcategoria,descripcion,tipo:tipoActual,payer:payerActual});
   calcularSaldo(); renderHistorial();
   document.getElementById('monto').value='';
