@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ffffff">
+<title>Finanzas Pablo & Julieta</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; min-height: 100vh; }
+.app { max-width: 420px; margin: 0 auto; padding: 1rem; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-top: 0.5rem; }
+.header h1 { font-size: 18px; font-weight: 600; color: #111; }
+.status-text { font-size: 12px; color: #888; display: flex; align-items: center; gap: 4px; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+.status-dot.connected { background: #1D9E75; }
+.status-dot.error { background: #E24B4A; }
+.tab-bar { display: flex; gap: 6px; background: #e8e8e8; border-radius: 10px; padding: 4px; margin-bottom: 1.25rem; }
+.tab { flex: 1; padding: 7px 0; font-size: 13px; font-weight: 500; text-align: center; border-radius: 7px; cursor: pointer; border: none; background: transparent; color: #666; }
+.tab.active { background: #fff; color: #111; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.card { background: #fff; border-radius: 14px; padding: 1rem 1.25rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+.balance-label { font-size: 12px; color: #888; margin-bottom: 4px; }
+.balance-amount { font-size: 32px; font-weight: 600; color: #111; }
+.balance-sub { font-size: 13px; color: #888; margin-top: 4px; }
+.balance-positive { color: #0F6E56; }
+.balance-negative { color: #993C1D; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; font-weight: 500; }
+.field input, .field select { width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid #e0e0e0; border-radius: 10px; background: #fafafa; color: #111; outline: none; }
+.field input:focus, .field select:focus { border-color: #1D9E75; background: #fff; }
+.toggle-row { display: flex; gap: 8px; }
+.toggle-btn { flex: 1; padding: 10px 0; font-size: 13px; font-weight: 500; border: 1px solid #e0e0e0; border-radius: 10px; background: #fafafa; color: #888; cursor: pointer; transition: all 0.15s; }
+.toggle-btn.active-compartido { background: #E1F5EE; color: #0F6E56; border-color: #5DCAA5; }
+.toggle-btn.active-pablo { background: #E6F1FB; color: #185FA5; border-color: #85B7EB; }
+.toggle-btn.active-julieta { background: #FBEAF0; color: #993556; border-color: #ED93B1; }
+.payer-row { display: flex; gap: 8px; }
+.payer-btn { flex: 1; padding: 10px 0; font-size: 14px; font-weight: 500; border: 1px solid #e0e0e0; border-radius: 10px; background: #fafafa; color: #888; cursor: pointer; }
+.payer-btn.active { background: #fff; color: #111; border-color: #111; }
+.submit-btn { width: 100%; padding: 14px; font-size: 16px; font-weight: 600; border: none; border-radius: 12px; background: #1D9E75; color: white; cursor: pointer; margin-top: 4px; }
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.expense-item { background: #fff; border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.expense-cat { font-size: 14px; font-weight: 500; color: #111; }
+.expense-meta { font-size: 12px; color: #888; margin-top: 2px; }
+.expense-amount { font-size: 15px; font-weight: 600; color: #111; text-align: right; }
+.expense-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-top: 4px; display: inline-block; }
+.badge-compartido { background: #E1F5EE; color: #0F6E56; }
+.badge-pablo { background: #E6F1FB; color: #185FA5; }
+.badge-julieta { background: #FBEAF0; color: #993556; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stat-box { background: #f5f5f5; border-radius: 12px; padding: 12px; }
+.stat-label { font-size: 12px; color: #888; margin-bottom: 4px; }
+.stat-value { font-size: 20px; font-weight: 600; color: #111; }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #111; color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: 500; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; z-index: 999; }
+.toast.show { opacity: 1; }
+.toast.error-toast { background: #E24B4A; }
+.empty-state { text-align: center; padding: 3rem 1rem; color: #aaa; font-size: 14px; }
+.setup-field { margin-bottom: 12px; }
+.setup-field label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; font-weight: 500; }
+.setup-field input { width: 100%; padding: 10px 12px; font-size: 13px; border: 1px solid #e0e0e0; border-radius: 10px; background: #fafafa; color: #111; font-family: monospace; }
+.connect-btn { width: 100%; padding: 12px; font-size: 15px; font-weight: 600; border: none; border-radius: 12px; background: #111; color: white; cursor: pointer; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="toast" id="toast"></div>
+
+  <div class="header">
+    <h1>Finanzas Pablo & Julieta</h1>
+    <div class="status-text">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">Sin conectar</span>
+    </div>
+  </div>
+
+  <div class="card" id="setup-section">
+    <div style="font-size:14px; font-weight:600; color:#111; margin-bottom:12px;">Conectar Google Sheets</div>
+    <div class="setup-field">
+      <label>Private Key (del archivo JSON)</label>
+      <input type="password" id="private-key-input" placeholder="-----BEGIN RSA PRIVATE KEY-----..." />
+    </div>
+    <div class="setup-field">
+      <label>Sheet ID</label>
+      <input type="text" id="sheet-id-input" value="1zvOKdJvDo9kwuPbsXm1o9I5SgNV_R-OxUn7oEmskdIY" readonly style="opacity:0.6;" />
+    </div>
+    <button class="connect-btn" onclick="conectar()">Conectar y crear planilla</button>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab active" onclick="showTab('cargar')">Cargar</button>
+    <button class="tab" onclick="showTab('historial')">Historial</button>
+    <button class="tab" onclick="showTab('saldo')">Saldo</button>
+  </div>
+
+  <div id="tab-cargar">
+    <div class="card">
+      <div class="balance-label">Saldo actual</div>
+      <div class="balance-amount" id="balance-main">$0.00</div>
+      <div class="balance-sub" id="balance-desc">Sin movimientos aún</div>
+    </div>
+    <div class="card">
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="fecha" />
+      </div>
+      <div class="field">
+        <label>Monto (AUD)</label>
+        <input type="number" id="monto" placeholder="0.00" step="0.01" min="0" />
+      </div>
+      <div class="field">
+        <label>Categoría</label>
+        <select id="categoria" onchange="updateSubcategorias()">
+          <option value="">Seleccioná una categoría</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Subcategoría</label>
+        <select id="subcategoria">
+          <option value="">Primero elegí categoría</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Descripción</label>
+        <input type="text" id="descripcion" placeholder="Ej: Coles del sábado" />
+      </div>
+      <div class="field">
+        <label>Tipo de gasto</label>
+        <div class="toggle-row">
+          <button class="toggle-btn active-compartido" id="tipo-compartido" onclick="setTipo('compartido')">Compartido</button>
+          <button class="toggle-btn" id="tipo-pablo" onclick="setTipo('pablo')">Solo Pablo</button>
+          <button class="toggle-btn" id="tipo-julieta" onclick="setTipo('julieta')">Solo Julieta</button>
+        </div>
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label>¿Quién pagó?</label>
+        <div class="payer-row">
+          <button class="payer-btn active" id="payer-pablo" onclick="setPayer('pablo')">Pablo</button>
+          <button class="payer-btn" id="payer-julieta" onclick="setPayer('julieta')">Julieta</button>
+        </div>
+      </div>
+      <button class="submit-btn" id="submit-btn" onclick="agregarGasto()">Guardar gasto</button>
+    </div>
+  </div>
+
+  <div id="tab-historial" style="display:none;">
+    <div id="expense-list"><div class="empty-state">Todavía no hay gastos cargados</div></div>
+  </div>
+
+  <div id="tab-saldo" style="display:none;">
+    <div class="card">
+      <div class="balance-label">Resumen general</div>
+      <div class="balance-amount" id="saldo-total">$0.00</div>
+      <div class="balance-sub" id="saldo-desc">Sin movimientos</div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-label">Pablo pagó</div><div class="stat-value" id="pablo-pago">$0.00</div></div>
+      <div class="stat-box"><div class="stat-label">Julieta pagó</div><div class="stat-value" id="julieta-pago">$0.00</div></div>
+      <div class="stat-box"><div class="stat-label">Gastos de Pablo</div><div class="stat-value" id="pablo-gastos">$0.00</div></div>
+      <div class="stat-box"><div class="stat-label">Gastos de Julieta</div><div class="stat-value" id="julieta-gastos">$0.00</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEET_ID = '1zvOKdJvDo9kwuPbsXm1o9I5SgNV_R-OxUn7oEmskdIY';
+const CLIENT_EMAIL = 'finanzas-app@app-finanzas-490205.iam.gserviceaccount.com';
+const SHEET_NAME = 'Gastos';
+const HEADERS = ['Date','Amount','Category','Subcategory','Description','Type','Paid_by','Pablo_amount','Julieta_amount'];
+
+const categorias = {
+  "Groceries": ["Supermarket","Alcohol"],
+  "Dining & Entertainment": ["Restaurants & Cafes","Party","Events"],
+  "Car Expenses": ["Fuel","Allianz","Car_Others"],
+  "Wd and Misc": ["Alternaleaf","Vape","Wd_Others"],
+  "Rent": ["Rent","Camping","Airbnb"],
+  "Subscriptions": ["YouTube","Spotify","Google","Netflix","ChatGPT","LinkedIn","HBO Max","Steam"],
+  "Banking": ["BBVA"],
+  "Health": ["Health Insurance","Health_Others"],
+  "Clothing": ["Clothing"],
+  "Investment": ["Investment","Crypto"],
+  "Phone": ["Telstra"],
+  "Transport": ["Transport"],
+  "Other expenses": ["Personal Shopping","Tramites","Other_Expenses"],
+  "Home & Electronics": ["Home & Electronics"],
+  "Education": ["Education"],
+  "Travel": ["Travel"]
+};
+
+let gastos = [], tipoActual = 'compartido', payerActual = 'pablo';
+let privateKey = '', accessToken = '', tokenExpiry = 0, isConnected = false;
+
+const catSelect = document.getElementById('categoria');
+Object.keys(categorias).forEach(cat => {
+  const opt = document.createElement('option');
+  opt.value = cat; opt.textContent = cat;
+  catSelect.appendChild(opt);
+});
+document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error-toast' : '') + ' show';
+  setTimeout(() => t.className = 'toast' + (isError ? ' error-toast' : ''), 2800);
+}
+
+function setStatus(connected, text) {
+  isConnected = connected;
+  document.getElementById('status-dot').className = 'status-dot ' + (connected ? 'connected' : (text === 'Error' ? 'error' : ''));
+  document.getElementById('status-text').textContent = text;
+}
+
+async function getAccessToken() {
+  if (accessToken && Date.now() < tokenExpiry) return accessToken;
+  const now = Math.floor(Date.now() / 1000);
+  const header = { alg: 'RS256', typ: 'JWT' };
+  const claim = { iss: CLIENT_EMAIL, scope: 'https://www.googleapis.com/auth/spreadsheets', aud: 'https://oauth2.googleapis.com/token', exp: now + 3600, iat: now };
+  const jwt = KJUR.jws.JWS.sign('RS256', JSON.stringify(header), JSON.stringify(claim), privateKey);
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`
+  });
+  const data = await res.json();
+  if (!data.access_token) throw new Error('Token error: ' + JSON.stringify(data));
+  accessToken = data.access_token;
+  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
+  return accessToken;
+}
+
+async function initSheet(token) {
+  const metaRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}?fields=sheets.properties.title`, { headers: { Authorization: 'Bearer ' + token } });
+  const meta = await metaRes.json();
+  const exists = (meta.sheets || []).some(s => s.properties.title === SHEET_NAME);
+  if (!exists) {
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}:batchUpdate`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [{ addSheet: { properties: { title: SHEET_NAME } } }] })
+    });
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:append?valueInputOption=RAW`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ values: [HEADERS] })
+    });
+  }
+}
+
+async function loadExistingData(token) {
+  const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A2:I`, { headers: { Authorization: 'Bearer ' + token } });
+  const data = await res.json();
+  gastos = (data.values || []).map(r => ({ fecha: r[0]||'', monto: parseFloat(r[1])||0, categoria: r[2]||'', subcategoria: r[3]||'', descripcion: r[4]||'', tipo: r[5]||'compartido', payer: r[6]||'pablo' })).reverse();
+  renderHistorial(); calcularSaldo();
+}
+
+async function conectar() {
+  const keyInput = document.getElementById('private-key-input').value.trim();
+  if (!keyInput) { showToast('Ingresá la private key', true); return; }
+  privateKey = keyInput.replace(/\\n/g, '\n');
+  setStatus(false, 'Conectando...');
+  try {
+    const token = await getAccessToken();
+    await initSheet(token);
+    await loadExistingData(token);
+    document.getElementById('setup-section').style.display = 'none';
+    setStatus(true, 'Conectado');
+    showToast('Planilla conectada!');
+  } catch(e) {
+    setStatus(false, 'Error');
+    showToast('Error: ' + e.message, true);
+  }
+}
+
+function updateSubcategorias() {
+  const cat = document.getElementById('categoria').value;
+  const sub = document.getElementById('subcategoria');
+  sub.innerHTML = '';
+  if (!cat) { sub.innerHTML = '<option>Primero elegí categoría</option>'; return; }
+  categorias[cat].forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; sub.appendChild(o); });
+}
+
+function setTipo(tipo) {
+  tipoActual = tipo;
+  ['compartido','pablo','julieta'].forEach(t => {
+    document.getElementById('tipo-' + t).className = 'toggle-btn' + (t === tipo ? ' active-' + t : '');
+  });
+}
+
+function setPayer(p) {
+  payerActual = p;
+  ['pablo','julieta'].forEach(x => { document.getElementById('payer-' + x).className = 'payer-btn' + (x === p ? ' active' : ''); });
+}
+
+function fmt(n) { return '$' + parseFloat(n).toFixed(2); }
+
+function calcularSaldo() {
+  let pP=0, jP=0, pD=0, jD=0;
+  gastos.forEach(g => {
+    const m = parseFloat(g.monto);
+    if (g.payer === 'pablo') pP += m; else jP += m;
+    if (g.tipo === 'compartido') { pD += m/2; jD += m/2; }
+    else if (g.tipo === 'pablo') pD += m; else jD += m;
+  });
+  document.getElementById('pablo-pago').textContent = fmt(pP);
+  document.getElementById('julieta-pago').textContent = fmt(jP);
+  document.getElementById('pablo-gastos').textContent = fmt(pD);
+  document.getElementById('julieta-gastos').textContent = fmt(jD);
+  const bal = pP - pD;
+  let t, d, c;
+  if (Math.abs(bal) < 0.01) { t='$0.00'; d='Están a mano'; c=''; }
+  else if (bal > 0) { t=fmt(bal); d='Julieta le debe a Pablo'; c='balance-positive'; }
+  else { t=fmt(Math.abs(bal)); d='Pablo le debe a Julieta'; c='balance-negative'; }
+  ['balance-main','saldo-total'].forEach(id => { const el=document.getElementById(id); el.textContent=t; el.className='balance-amount '+c; });
+  ['balance-desc','saldo-desc'].forEach(id => document.getElementById(id).textContent = d);
+}
+
+async function agregarGasto() {
+  const fecha=document.getElementById('fecha').value, monto=parseFloat(document.getElementById('monto').value);
+  const categoria=document.getElementById('categoria').value, subcategoria=document.getElementById('subcategoria').value;
+  const descripcion=document.getElementById('descripcion').value;
+  if (!fecha||!monto||!categoria||!subcategoria) { showToast('Completá todos los campos', true); return; }
+  const pA = tipoActual==='compartido' ? monto/2 : (tipoActual==='pablo' ? monto : 0);
+  const jA = tipoActual==='compartido' ? monto/2 : (tipoActual==='julieta' ? monto : 0);
+  const row = [fecha, monto, categoria, subcategoria, descripcion, tipoActual, payerActual, pA.toFixed(2), jA.toFixed(2)];
+  const btn = document.getElementById('submit-btn');
+  btn.disabled=true; btn.textContent='Guardando...';
+  if (isConnected) {
+    try {
+      const token = await getAccessToken();
+      await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ values: [row] })
+      });
+      showToast('Guardado en Google Sheets!');
+    } catch(e) { showToast('Error: ' + e.message, true); btn.disabled=false; btn.textContent='Guardar gasto'; return; }
+  } else {
+    showToast('Guardado localmente');
+  }
+  gastos.unshift({ fecha, monto, categoria, subcategoria, descripcion, tipo: tipoActual, payer: payerActual });
+  calcularSaldo(); renderHistorial();
+  document.getElementById('monto').value='';
+  document.getElementById('descripcion').value='';
+  document.getElementById('categoria').value='';
+  document.getElementById('subcategoria').innerHTML='<option>Primero elegí categoría</option>';
+  btn.disabled=false; btn.textContent='Guardar gasto';
+}
+
+function renderHistorial() {
+  const list = document.getElementById('expense-list');
+  if (!gastos.length) { list.innerHTML='<div class="empty-state">Todavía no hay gastos cargados</div>'; return; }
+  list.innerHTML = gastos.map(g => `
+    <div class="expense-item">
+      <div>
+        <div class="expense-cat">${g.subcategoria} <span style="color:#aaa;font-weight:400;">· ${g.categoria}</span></div>
+        <div class="expense-meta">${g.fecha} · ${g.descripcion||'Sin descripción'} · Pagó ${g.payer==='pablo'?'Pablo':'Julieta'}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="expense-amount">${fmt(g.monto)}</div>
+        <span class="expense-badge badge-${g.tipo}">${g.tipo==='compartido'?'Compartido':(g.tipo==='pablo'?'Pablo':'Julieta')}</span>
+      </div>
+    </div>`).join('');
+}
+
+function showTab(tab) {
+  ['cargar','historial','saldo'].forEach(t => { document.getElementById('tab-'+t).style.display = t===tab?'block':'none'; });
+  document.querySelectorAll('.tab').forEach((btn,i) => { btn.className='tab'+((['cargar','historial','saldo'][i])===tab?' active':''); });
+}
+</script>
+</body>
+</html>
