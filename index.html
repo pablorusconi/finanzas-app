@@ -7,15 +7,15 @@
 <title>Vagonetas</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.png">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Cormorant Garamond', Georgia, serif; background: #141412; min-height: 100vh; color: #E8DCC3; font-size: 16px; }
+body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-height: 100vh; color: #E8DCC3; font-size: 16px; }
 .app { max-width: 420px; margin: 0 auto; padding: 1rem; }
 .header { text-align: center; padding: 1.5rem 0 1rem; border-bottom: 1px solid #2d6b4a; margin-bottom: 1.25rem; position: relative; }
 .header-logo { width: 52px; height: 52px; border-radius: 12px; margin: 0 auto 8px; display: block; }
-.header h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 30px; font-weight: 700; color: #E8DCC3; letter-spacing: 5px; text-transform: uppercase; }
-.header-sub { font-size: 13px; color: #2d8a52; letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; font-weight: 300; }
+.header h1 { font-family: 'DM Serif Display', Georgia, serif; font-size: 30px; font-weight: 400; color: #E8DCC3; letter-spacing: 5px; text-transform: uppercase; }
+.header-sub { font-size: 12px; color: #2d8a52; letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; font-weight: 300; font-family: 'DM Sans', sans-serif; }
 .status-area { position: absolute; top: 1.5rem; right: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .status-text { font-size: 11px; color: #666; display: flex; align-items: center; gap: 4px; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #444; }
@@ -24,40 +24,40 @@ body { font-family: 'Cormorant Garamond', Georgia, serif; background: #141412; m
 .divider { display: flex; align-items: center; gap: 10px; margin: 0.75rem 0; color: #2d6b4a; font-size: 13px; font-style: italic; }
 .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #2d6b4a; }
 .tab-bar { display: flex; gap: 0; border: 1px solid #2d6b4a; border-radius: 4px; overflow: hidden; margin-bottom: 1.25rem; }
-.tab { flex: 1; padding: 10px 0; font-size: 13px; text-align: center; cursor: pointer; border: none; background: transparent; color: #666; font-family: 'Cormorant Garamond', serif; letter-spacing: 2px; text-transform: uppercase; border-right: 1px solid #2d6b4a; transition: all 0.15s; }
+.tab { flex: 1; padding: 10px 0; font-size: 12px; text-align: center; cursor: pointer; border: none; background: transparent; color: #666; font-family: 'DM Sans', sans-serif; letter-spacing: 2px; text-transform: uppercase; border-right: 1px solid #2d6b4a; transition: all 0.15s; }
 .tab:last-child { border-right: none; }
 .tab.active { background: #2d6b4a; color: #E8DCC3; }
 .card { background: #1c1c18; border: 1px solid #2d6b4a; border-radius: 4px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
 .balance-label { font-size: 11px; color: #2d8a52; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
-.balance-amount { font-family: 'Playfair Display', Georgia, serif; font-size: 42px; font-weight: 600; color: #E8DCC3; line-height: 1; }
+.balance-amount { font-family: 'DM Serif Display', Georgia, serif; font-size: 42px; font-weight: 400; color: #E8DCC3; line-height: 1; }
 .balance-sub { font-size: 14px; color: #666; margin-top: 6px; letter-spacing: 1px; font-style: italic; }
 .balance-positive { color: #2d8a52; }
 .balance-negative { color: #8a4a2d; }
 .field { margin-bottom: 14px; }
 .field label { display: block; font-size: 11px; color: #2d8a52; margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; }
-.field input, .field select { width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid #2d6b4a; border-radius: 3px; background: #141412; color: #E8DCC3; font-family: 'Cormorant Garamond', serif; outline: none; transition: border-color 0.15s; }
+.field input, .field select { width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid #2d6b4a; border-radius: 3px; background: #141412; color: #E8DCC3; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.15s; }
 .field input:focus, .field select:focus { border-color: #2d8a52; }
 .field select option { background: #141412; }
 .field input::placeholder { color: #444; font-style: italic; }
 .toggle-row { display: flex; gap: 0; border: 1px solid #2d6b4a; border-radius: 3px; overflow: hidden; }
-.toggle-btn { flex: 1; padding: 11px 0; font-size: 12px; border: none; border-right: 1px solid #2d6b4a; background: #141412; color: #555; cursor: pointer; font-family: 'Cormorant Garamond', serif; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; }
+.toggle-btn { flex: 1; padding: 11px 0; font-size: 12px; border: none; border-right: 1px solid #2d6b4a; background: #141412; color: #555; cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; }
 .toggle-btn:last-child { border-right: none; }
 .toggle-btn.active-compartido { background: #1a3d28; color: #4db87a; }
 .toggle-btn.active-pablo { background: #1a2a3d; color: #6a9fd8; }
 .toggle-btn.active-julieta { background: #3d1a2a; color: #d86a9f; }
 .payer-row { display: flex; gap: 0; border: 1px solid #2d6b4a; border-radius: 3px; overflow: hidden; }
-.payer-btn { flex: 1; padding: 11px 0; font-size: 14px; border: none; border-right: 1px solid #2d6b4a; background: #141412; color: #555; cursor: pointer; font-family: 'Cormorant Garamond', serif; letter-spacing: 2px; text-transform: uppercase; transition: all 0.15s; }
+.payer-btn { flex: 1; padding: 11px 0; font-size: 14px; border: none; border-right: 1px solid #2d6b4a; background: #141412; color: #555; cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 2px; text-transform: uppercase; transition: all 0.15s; }
 .payer-btn:last-child { border-right: none; }
 .payer-btn.active { background: #2d6b4a; color: #E8DCC3; }
-.submit-btn { width: 100%; padding: 13px; font-size: 14px; border: 1px solid #2d8a52; border-radius: 3px; background: #1a3d28; color: #E8DCC3; cursor: pointer; margin-top: 4px; font-family: 'Cormorant Garamond', serif; letter-spacing: 4px; text-transform: uppercase; transition: all 0.15s; }
+.submit-btn { width: 100%; padding: 13px; font-size: 13px; border: 1px solid #2d8a52; border-radius: 3px; background: #1a3d28; color: #E8DCC3; cursor: pointer; margin-top: 4px; font-family: 'DM Sans', sans-serif; letter-spacing: 4px; text-transform: uppercase; transition: all 0.15s; }
 .submit-btn:hover { background: #2d6b4a; }
 .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .expense-item { background: #1c1c18; border: 1px solid #2a2a24; border-radius: 3px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; transition: border-color 0.15s; }
 .expense-item:hover { border-color: #2d6b4a; }
-.expense-cat { font-size: 15px; color: #E8DCC3; font-weight: 500; }
-.expense-subcat { font-size: 11px; color: #2d8a52; letter-spacing: 1px; text-transform: uppercase; }
-.expense-meta { font-size: 12px; color: #555; margin-top: 3px; font-style: italic; }
-.expense-amount { font-family: 'Playfair Display', Georgia, serif; font-size: 17px; color: #E8DCC3; text-align: right; font-weight: 600; }
+.expense-cat { font-size: 15px; color: #E8DCC3; font-weight: 500; font-family: 'DM Sans', sans-serif; }
+.expense-subcat { font-size: 11px; color: #2d8a52; letter-spacing: 1px; text-transform: uppercase; font-family: 'DM Sans', sans-serif; }
+.expense-meta { font-size: 12px; color: #555; margin-top: 3px; font-style: italic; font-family: 'DM Sans', sans-serif; }
+.expense-amount { font-family: 'DM Serif Display', Georgia, serif; font-size: 17px; color: #E8DCC3; text-align: right; font-weight: 400; }
 .expense-badge { font-size: 10px; padding: 2px 7px; border-radius: 2px; margin-top: 4px; display: inline-block; letter-spacing: 1px; text-transform: uppercase; }
 .badge-compartido { background: #1a3d28; color: #4db87a; border: 1px solid #2d6b4a; }
 .badge-pablo { background: #1a2a3d; color: #6a9fd8; border: 1px solid #2a4a6b; }
@@ -65,7 +65,7 @@ body { font-family: 'Cormorant Garamond', Georgia, serif; background: #141412; m
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .stat-box { background: #141412; border: 1px solid #2d6b4a; border-radius: 3px; padding: 12px; }
 .stat-label { font-size: 10px; color: #2d8a52; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
-.stat-value { font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: #E8DCC3; font-weight: 600; }
+.stat-value { font-family: 'DM Serif Display', Georgia, serif; font-size: 22px; color: #E8DCC3; font-weight: 400; }
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a3d28; border: 1px solid #2d8a52; color: #E8DCC3; padding: 10px 22px; border-radius: 3px; font-size: 13px; font-family: 'Cormorant Garamond', serif; letter-spacing: 2px; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; z-index: 999; font-style: italic; }
 .toast.show { opacity: 1; }
 .toast.error-toast { background: #3d1a1a; border-color: #8a2d2d; }
