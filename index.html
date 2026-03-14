@@ -7,84 +7,105 @@
 <title>Vagonetas</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.png">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Special+Elite&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Special Elite', 'Courier New', monospace; background: #141412; min-height: 100vh; color: #E8DCC3; }
+body { font-family: 'Cormorant Garamond', Georgia, serif; background: #141412; min-height: 100vh; color: #E8DCC3; font-size: 16px; }
 .app { max-width: 420px; margin: 0 auto; padding: 1rem; }
+
 .header { text-align: center; padding: 1.5rem 0 1rem; border-bottom: 1px solid #2d6b4a; margin-bottom: 1.25rem; position: relative; }
 .header-logo { width: 52px; height: 52px; border-radius: 12px; margin: 0 auto 8px; display: block; }
-.header h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 28px; font-weight: 900; color: #E8DCC3; letter-spacing: 4px; text-transform: uppercase; }
-.header-sub { font-size: 11px; color: #2d8a52; letter-spacing: 3px; text-transform: uppercase; margin-top: 3px; }
-.status-text { position: absolute; top: 1.5rem; right: 0; font-size: 11px; color: #666; display: flex; align-items: center; gap: 4px; }
+.header h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 30px; font-weight: 700; color: #E8DCC3; letter-spacing: 5px; text-transform: uppercase; }
+.header-sub { font-size: 13px; color: #2d8a52; letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; font-weight: 300; }
+.status-area { position: absolute; top: 1.5rem; right: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.status-text { font-size: 11px; color: #666; display: flex; align-items: center; gap: 4px; font-family: 'Cormorant Garamond', serif; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #444; }
 .status-dot.connected { background: #2d8a52; }
 .status-dot.error { background: #8a2d2d; }
-.divider { display: flex; align-items: center; gap: 8px; margin: 0.75rem 0; color: #2d6b4a; font-size: 12px; }
+.disconnect-btn { font-size: 10px; color: #555; background: none; border: none; cursor: pointer; font-family: 'Cormorant Garamond', serif; letter-spacing: 1px; text-decoration: underline; padding: 0; }
+.disconnect-btn:hover { color: #8a2d2d; }
+
+.divider { display: flex; align-items: center; gap: 10px; margin: 0.75rem 0; color: #2d6b4a; font-size: 13px; font-style: italic; }
 .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #2d6b4a; }
+
 .tab-bar { display: flex; gap: 0; border: 1px solid #2d6b4a; border-radius: 4px; overflow: hidden; margin-bottom: 1.25rem; }
-.tab { flex: 1; padding: 9px 0; font-size: 12px; text-align: center; cursor: pointer; border: none; background: transparent; color: #666; font-family: 'Special Elite', monospace; letter-spacing: 1px; text-transform: uppercase; border-right: 1px solid #2d6b4a; transition: all 0.15s; }
+.tab { flex: 1; padding: 10px 0; font-size: 13px; text-align: center; cursor: pointer; border: none; background: transparent; color: #666; font-family: 'Cormorant Garamond', serif; letter-spacing: 2px; text-transform: uppercase; border-right: 1px solid #2d6b4a; transition: all 0.15s; }
 .tab:last-child { border-right: none; }
 .tab.active { background: #2d6b4a; color: #E8DCC3; }
+
 .card { background: #1c1c18; border: 1px solid #2d6b4a; border-radius: 4px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
-.balance-label { font-size: 11px; color: #2d8a52; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
-.balance-amount { font-family: 'Playfair Display', Georgia, serif; font-size: 38px; font-weight: 700; color: #E8DCC3; }
-.balance-sub { font-size: 12px; color: #666; margin-top: 4px; letter-spacing: 1px; }
+
+.balance-label { font-size: 11px; color: #2d8a52; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; font-weight: 400; }
+.balance-amount { font-family: 'Playfair Display', Georgia, serif; font-size: 42px; font-weight: 600; color: #E8DCC3; line-height: 1; }
+.balance-sub { font-size: 14px; color: #666; margin-top: 6px; letter-spacing: 1px; font-style: italic; }
 .balance-positive { color: #2d8a52; }
 .balance-negative { color: #8a4a2d; }
+
 .field { margin-bottom: 14px; }
-.field label { display: block; font-size: 11px; color: #2d8a52; margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; }
-.field input, .field select { width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid #2d6b4a; border-radius: 3px; background: #141412; color: #E8DCC3; font-family: 'Special Elite', monospace; outline: none; transition: border-color 0.15s; }
+.field label { display: block; font-size: 11px; color: #2d8a52; margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; font-weight: 400; }
+.field input, .field select { width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid #2d6b4a; border-radius: 3px; background: #141412; color: #E8DCC3; font-family: 'Cormorant Garamond', serif; outline: none; transition: border-color 0.15s; }
 .field input:focus, .field select:focus { border-color: #2d8a52; }
 .field select option { background: #141412; }
+.field input::placeholder { color: #444; font-style: italic; }
+
 .toggle-row { display: flex; gap: 0; border: 1px solid #2d6b4a; border-radius: 3px; overflow: hidden; }
-.toggle-btn { flex: 1; padding: 10px 0; font-size: 11px; border: none; border-right: 1px solid #2d6b4a; background: #141412; color: #666; cursor: pointer; font-family: 'Special Elite', monospace; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; }
+.toggle-btn { flex: 1; padding: 11px 0; font-size: 12px; border: none; border-right: 1px solid #2d6b4a; background: #141412; color: #555; cursor: pointer; font-family: 'Cormorant Garamond', serif; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; }
 .toggle-btn:last-child { border-right: none; }
-.toggle-btn.active-compartido { background: #1a3d28; color: #2d8a52; }
-.toggle-btn.active-pablo { background: #1a2a3d; color: #4a7ab5; }
-.toggle-btn.active-julieta { background: #3d1a2a; color: #b54a7a; }
+.toggle-btn.active-compartido { background: #1a3d28; color: #4db87a; }
+.toggle-btn.active-pablo { background: #1a2a3d; color: #6a9fd8; }
+.toggle-btn.active-julieta { background: #3d1a2a; color: #d86a9f; }
+
 .payer-row { display: flex; gap: 0; border: 1px solid #2d6b4a; border-radius: 3px; overflow: hidden; }
-.payer-btn { flex: 1; padding: 10px 0; font-size: 13px; border: none; border-right: 1px solid #2d6b4a; background: #141412; color: #666; cursor: pointer; font-family: 'Special Elite', monospace; letter-spacing: 1px; transition: all 0.15s; }
+.payer-btn { flex: 1; padding: 11px 0; font-size: 14px; border: none; border-right: 1px solid #2d6b4a; background: #141412; color: #555; cursor: pointer; font-family: 'Cormorant Garamond', serif; letter-spacing: 2px; text-transform: uppercase; transition: all 0.15s; }
 .payer-btn:last-child { border-right: none; }
 .payer-btn.active { background: #2d6b4a; color: #E8DCC3; }
-.submit-btn { width: 100%; padding: 13px; font-size: 13px; border: 1px solid #2d8a52; border-radius: 3px; background: #1a3d28; color: #E8DCC3; cursor: pointer; margin-top: 4px; font-family: 'Special Elite', monospace; letter-spacing: 3px; text-transform: uppercase; transition: all 0.15s; }
+
+.submit-btn { width: 100%; padding: 13px; font-size: 14px; border: 1px solid #2d8a52; border-radius: 3px; background: #1a3d28; color: #E8DCC3; cursor: pointer; margin-top: 4px; font-family: 'Cormorant Garamond', serif; letter-spacing: 4px; text-transform: uppercase; transition: all 0.15s; }
 .submit-btn:hover { background: #2d6b4a; }
 .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 .expense-item { background: #1c1c18; border: 1px solid #2a2a24; border-radius: 3px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; transition: border-color 0.15s; }
 .expense-item:hover { border-color: #2d6b4a; }
-.expense-cat { font-size: 13px; color: #E8DCC3; font-family: 'Special Elite', monospace; }
-.expense-subcat { font-size: 11px; color: #2d8a52; letter-spacing: 1px; }
-.expense-meta { font-size: 11px; color: #555; margin-top: 3px; }
-.expense-amount { font-family: 'Playfair Display', Georgia, serif; font-size: 16px; color: #E8DCC3; text-align: right; }
-.expense-badge { font-size: 10px; padding: 2px 7px; border-radius: 2px; margin-top: 4px; display: inline-block; letter-spacing: 1px; text-transform: uppercase; font-family: 'Special Elite', monospace; }
-.badge-compartido { background: #1a3d28; color: #2d8a52; border: 1px solid #2d6b4a; }
-.badge-pablo { background: #1a2a3d; color: #4a7ab5; border: 1px solid #2a4a6b; }
-.badge-julieta { background: #3d1a2a; color: #b54a7a; border: 1px solid #6b2a4a; }
+.expense-cat { font-size: 15px; color: #E8DCC3; font-family: 'Cormorant Garamond', serif; font-weight: 500; }
+.expense-subcat { font-size: 11px; color: #2d8a52; letter-spacing: 1px; text-transform: uppercase; }
+.expense-meta { font-size: 12px; color: #555; margin-top: 3px; font-style: italic; }
+.expense-amount { font-family: 'Playfair Display', Georgia, serif; font-size: 17px; color: #E8DCC3; text-align: right; font-weight: 600; }
+.expense-badge { font-size: 10px; padding: 2px 7px; border-radius: 2px; margin-top: 4px; display: inline-block; letter-spacing: 1px; text-transform: uppercase; font-family: 'Cormorant Garamond', serif; }
+.badge-compartido { background: #1a3d28; color: #4db87a; border: 1px solid #2d6b4a; }
+.badge-pablo { background: #1a2a3d; color: #6a9fd8; border: 1px solid #2a4a6b; }
+.badge-julieta { background: #3d1a2a; color: #d86a9f; border: 1px solid #6b2a4a; }
+
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .stat-box { background: #141412; border: 1px solid #2d6b4a; border-radius: 3px; padding: 12px; }
 .stat-label { font-size: 10px; color: #2d8a52; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
-.stat-value { font-family: 'Playfair Display', Georgia, serif; font-size: 20px; color: #E8DCC3; }
+.stat-value { font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: #E8DCC3; font-weight: 600; }
+
 .setup-field { margin-bottom: 12px; }
 .setup-field label { display: block; font-size: 11px; color: #2d8a52; margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; }
-.setup-field input { width: 100%; padding: 10px 12px; font-size: 12px; border: 1px solid #2d6b4a; border-radius: 3px; background: #141412; color: #E8DCC3; font-family: monospace; }
-.connect-btn { width: 100%; padding: 12px; font-size: 12px; border: 1px solid #2d8a52; border-radius: 3px; background: #141412; color: #E8DCC3; cursor: pointer; font-family: 'Special Elite', monospace; letter-spacing: 3px; text-transform: uppercase; transition: all 0.15s; }
+.setup-field input { width: 100%; padding: 10px 12px; font-size: 13px; border: 1px solid #2d6b4a; border-radius: 3px; background: #141412; color: #E8DCC3; font-family: monospace; }
+.connect-btn { width: 100%; padding: 12px; font-size: 13px; border: 1px solid #2d8a52; border-radius: 3px; background: #141412; color: #E8DCC3; cursor: pointer; font-family: 'Cormorant Garamond', serif; letter-spacing: 4px; text-transform: uppercase; transition: all 0.15s; margin-bottom: 0; }
 .connect-btn:hover { background: #1a3d28; }
-.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a3d28; border: 1px solid #2d8a52; color: #E8DCC3; padding: 10px 20px; border-radius: 3px; font-size: 12px; font-family: 'Special Elite', monospace; letter-spacing: 2px; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; z-index: 999; }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a3d28; border: 1px solid #2d8a52; color: #E8DCC3; padding: 10px 22px; border-radius: 3px; font-size: 13px; font-family: 'Cormorant Garamond', serif; letter-spacing: 2px; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; z-index: 999; font-style: italic; }
 .toast.show { opacity: 1; }
 .toast.error-toast { background: #3d1a1a; border-color: #8a2d2d; }
-.empty-state { text-align: center; padding: 3rem 1rem; color: #444; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; }
+.empty-state { text-align: center; padding: 3rem 1rem; color: #444; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; font-style: italic; }
 </style>
 </head>
 <body>
 <div class="app">
   <div class="toast" id="toast"></div>
+
   <div class="header">
     <img src="icon.png" class="header-logo" alt="Vagonetas"/>
     <h1>Vagonetas</h1>
     <div class="header-sub">Pablo & Julieta</div>
-    <div class="status-text">
-      <span class="status-dot" id="status-dot"></span>
-      <span id="status-text">offline</span>
+    <div class="status-area">
+      <div class="status-text">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">offline</span>
+      </div>
+      <button class="disconnect-btn" id="disconnect-btn" onclick="desconectar()" style="display:none;">desconectar</button>
     </div>
   </div>
 
@@ -171,6 +192,8 @@ const SHEET_ID = '1zvOKdJvDo9kwuPbsXm1o9I5SgNV_R-OxUn7oEmskdIY';
 const CLIENT_EMAIL = 'finanzas-app@app-finanzas-490205.iam.gserviceaccount.com';
 const SHEET_NAME = 'Gastos';
 const HEADERS = ['Date','Amount','Category','Subcategory','Description','Type','Paid_by','Pablo_amount','Julieta_amount'];
+const STORAGE_KEY = 'vagonetas_private_key';
+
 const categorias = {
   "Groceries": ["Supermarket","Alcohol"],
   "Dining & Entertainment": ["Restaurants & Cafes","Party","Events"],
@@ -189,24 +212,49 @@ const categorias = {
   "Education": ["Education"],
   "Travel": ["Travel"]
 };
+
 let gastos=[], tipoActual='compartido', payerActual='pablo';
 let privateKey='', accessToken='', tokenExpiry=0, isConnected=false;
 
 const catSelect = document.getElementById('categoria');
 Object.keys(categorias).forEach(cat => { const o=document.createElement('option'); o.value=cat; o.textContent=cat; catSelect.appendChild(o); });
 document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+// Auto-conectar si hay key guardada
+window.addEventListener('load', () => {
+  const savedKey = localStorage.getItem(STORAGE_KEY);
+  if (savedKey) {
+    document.getElementById('private-key-input').value = savedKey;
+    conectar(true);
+  }
+});
 
 function showToast(msg, isError=false) {
   const t=document.getElementById('toast');
   t.textContent=msg; t.className='toast'+(isError?' error-toast':'')+' show';
   setTimeout(()=>t.className='toast'+(isError?' error-toast':''), 2800);
 }
+
 function setStatus(connected, text) {
   isConnected=connected;
   document.getElementById('status-dot').className='status-dot '+(connected?'connected':(text==='error'?'error':''));
   document.getElementById('status-text').textContent=text;
+  document.getElementById('disconnect-btn').style.display=connected?'block':'none';
 }
+
+function desconectar() {
+  localStorage.removeItem(STORAGE_KEY);
+  privateKey=''; accessToken=''; tokenExpiry=0; isConnected=false;
+  gastos=[];
+  document.getElementById('setup-section').style.display='block';
+  document.getElementById('private-key-input').value='';
+  setStatus(false,'offline');
+  renderHistorial(); calcularSaldo();
+  showToast('desconectado');
+}
+
 async function getAccessToken() {
   if (accessToken && Date.now()<tokenExpiry) return accessToken;
   const now=Math.floor(Date.now()/1000);
@@ -217,6 +265,7 @@ async function getAccessToken() {
   accessToken=data.access_token; tokenExpiry=Date.now()+(data.expires_in-60)*1000;
   return accessToken;
 }
+
 async function initSheet(token) {
   const meta=await (await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}?fields=sheets.properties.title`,{headers:{Authorization:'Bearer '+token}})).json();
   if (!(meta.sheets||[]).some(s=>s.properties.title===SHEET_NAME)) {
@@ -224,38 +273,52 @@ async function initSheet(token) {
     await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:append?valueInputOption=RAW`,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[HEADERS]})});
   }
 }
+
 async function loadExistingData(token) {
   const data=await (await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A2:I`,{headers:{Authorization:'Bearer '+token}})).json();
   gastos=(data.values||[]).map(r=>({fecha:r[0]||'',monto:parseFloat(r[1])||0,categoria:r[2]||'',subcategoria:r[3]||'',descripcion:r[4]||'',tipo:r[5]||'compartido',payer:r[6]||'pablo'})).reverse();
   renderHistorial(); calcularSaldo();
 }
-async function conectar() {
+
+async function conectar(silencioso=false) {
   const keyInput=document.getElementById('private-key-input').value.trim();
   if (!keyInput) { showToast('ingresá la private key',true); return; }
   privateKey=keyInput.replace(/\\n/g,'\n');
   setStatus(false,'conectando...');
   try {
     const token=await getAccessToken();
-    await initSheet(token); await loadExistingData(token);
+    await initSheet(token);
+    await loadExistingData(token);
+    localStorage.setItem(STORAGE_KEY, keyInput);
     document.getElementById('setup-section').style.display='none';
-    setStatus(true,'online'); showToast('conectado');
-  } catch(e) { setStatus(false,'error'); showToast('error: '+e.message,true); }
+    setStatus(true,'online');
+    if (!silencioso) showToast('conectado y guardado');
+  } catch(e) {
+    setStatus(false,'error');
+    showToast('error: '+e.message,true);
+    localStorage.removeItem(STORAGE_KEY);
+  }
 }
+
 function updateSubcategorias() {
   const cat=document.getElementById('categoria').value, sub=document.getElementById('subcategoria');
   sub.innerHTML='';
   if (!cat) { sub.innerHTML='<option>— primero elegí categoría —</option>'; return; }
   categorias[cat].forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; sub.appendChild(o); });
 }
+
 function setTipo(tipo) {
   tipoActual=tipo;
   ['compartido','pablo','julieta'].forEach(t=>{ document.getElementById('tipo-'+t).className='toggle-btn'+(t===tipo?' active-'+t:''); });
 }
+
 function setPayer(p) {
   payerActual=p;
   ['pablo','julieta'].forEach(x=>{ document.getElementById('payer-'+x).className='payer-btn'+(x===p?' active':''); });
 }
+
 function fmt(n) { return '$'+parseFloat(n).toFixed(2); }
+
 function calcularSaldo() {
   let pP=0,jP=0,pD=0,jD=0;
   gastos.forEach(g=>{ const m=parseFloat(g.monto); if(g.payer==='pablo') pP+=m; else jP+=m; if(g.tipo==='compartido'){pD+=m/2;jD+=m/2;} else if(g.tipo==='pablo') pD+=m; else jD+=m; });
@@ -270,6 +333,7 @@ function calcularSaldo() {
   ['balance-main','saldo-total'].forEach(id=>{ const el=document.getElementById(id); el.textContent=t; el.className='balance-amount '+c; });
   ['balance-desc','saldo-desc'].forEach(id=>document.getElementById(id).textContent=d);
 }
+
 async function agregarGasto() {
   const fecha=document.getElementById('fecha').value, monto=parseFloat(document.getElementById('monto').value);
   const categoria=document.getElementById('categoria').value, subcategoria=document.getElementById('subcategoria').value;
@@ -295,6 +359,7 @@ async function agregarGasto() {
   document.getElementById('subcategoria').innerHTML='<option>— primero elegí categoría —</option>';
   btn.disabled=false; btn.textContent='registrar gasto';
 }
+
 function renderHistorial() {
   const list=document.getElementById('expense-list');
   if(!gastos.length){list.innerHTML='<div class="empty-state">— sin registros —</div>';return;}
@@ -311,6 +376,7 @@ function renderHistorial() {
       </div>
     </div>`).join('');
 }
+
 function showTab(tab) {
   ['cargar','historial','saldo'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===tab?'block':'none';});
   document.querySelectorAll('.tab').forEach((btn,i)=>{btn.className='tab'+((['cargar','historial','saldo'][i])===tab?' active':'');});

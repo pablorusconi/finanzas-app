@@ -1,20 +1,20 @@
 {
-  "name": "Finanzas Pablo & Julieta",
-  "short_name": "Finanzas",
+  "name": "Vagonetas",
+  "short_name": "Vagonetas",
   "description": "App para gestionar gastos compartidos",
   "start_url": "/finanzas-app/",
   "display": "standalone",
-  "background_color": "#f5f5f5",
-  "theme_color": "#1D9E75",
+  "background_color": "#141412",
+  "theme_color": "#141412",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://raw.githubusercontent.com/pablorusconi/finanzas-app/main/icon.png",
+      "src": "icon.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://raw.githubusercontent.com/pablorusconi/finanzas-app/main/icon.png",
+      "src": "icon.png",
       "sizes": "512x512",
       "type": "image/png"
     }
