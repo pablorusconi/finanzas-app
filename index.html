@@ -52,7 +52,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 .submit-btn { width: 100%; padding: 13px; font-size: 13px; border: 1px solid #2d8a52; border-radius: 3px; background: #1a3d28; color: #E8DCC3; cursor: pointer; margin-top: 4px; font-family: 'DM Sans', sans-serif; letter-spacing: 4px; text-transform: uppercase; transition: all 0.15s; }
 .submit-btn:hover { background: #2d6b4a; }
 .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.expense-item { background: #1c1c18; border: 1px solid #2a2a24; border-radius: 3px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; transition: border-color 0.15s; }
+.expense-item { background: #1c1c18; border: 1px solid #2a2a24; border-radius: 3px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; transition: border-color 0.15s; }
 .expense-item:hover { border-color: #2d6b4a; }
 .expense-cat { font-size: 15px; color: #E8DCC3; font-weight: 500; font-family: 'DM Sans', sans-serif; }
 .expense-subcat { font-size: 11px; color: #2d8a52; letter-spacing: 1px; text-transform: uppercase; font-family: 'DM Sans', sans-serif; }
@@ -62,6 +62,11 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 .badge-compartido { background: #1a3d28; color: #4db87a; border: 1px solid #2d6b4a; }
 .badge-pablo { background: #1a2a3d; color: #6a9fd8; border: 1px solid #2a4a6b; }
 .badge-julieta { background: #3d1a2a; color: #d86a9f; border: 1px solid #6b2a4a; }
+.action-btns { display: flex; gap: 5px; margin-top: 6px; }
+.btn-edit { background: none; border: 1px solid #2d6b4a; border-radius: 2px; color: #2d8a52; cursor: pointer; padding: 3px 8px; font-size: 10px; font-family: 'DM Sans', sans-serif; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; }
+.btn-edit:hover { background: #1a3d28; }
+.btn-delete { background: none; border: 1px solid #5a2d2d; border-radius: 2px; color: #8a4a4a; cursor: pointer; padding: 3px 8px; font-size: 10px; font-family: 'DM Sans', sans-serif; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; }
+.btn-delete:hover { background: #3d1a1a; color: #d86a6a; border-color: #8a2d2d; }
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .stat-box { background: #141412; border: 1px solid #2d6b4a; border-radius: 3px; padding: 12px; }
 .stat-label { font-size: 10px; color: #2d8a52; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
@@ -71,6 +76,25 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 .toast.error-toast { background: #3d1a1a; border-color: #8a2d2d; }
 .empty-state { text-align: center; padding: 3rem 1rem; color: #444; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; font-style: italic; }
 .connecting-screen { text-align: center; padding: 3rem 1rem; color: #2d8a52; font-size: 14px; letter-spacing: 3px; text-transform: uppercase; font-style: italic; }
+/* Modal de edición */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 100; overflow-y: auto; padding: 1rem; }
+.modal-box { max-width: 420px; margin: 0 auto; background: #1c1c18; border: 1px solid #2d6b4a; border-radius: 4px; padding: 1.25rem; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid #2d6b4a; }
+.modal-title { font-family: 'DM Serif Display', Georgia, serif; font-size: 22px; color: #E8DCC3; letter-spacing: 2px; }
+.modal-close { background: none; border: none; color: #555; font-size: 22px; cursor: pointer; line-height: 1; padding: 0 4px; transition: color 0.15s; }
+.modal-close:hover { color: #E8DCC3; }
+/* Modal de confirmación */
+.confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
+.confirm-overlay.show { display: flex; }
+.confirm-box { max-width: 320px; width: 100%; background: #1c1c18; border: 1px solid #5a2d2d; border-radius: 4px; padding: 1.5rem; text-align: center; }
+.confirm-title { font-family: 'DM Serif Display', Georgia, serif; font-size: 20px; color: #E8DCC3; margin-bottom: 8px; }
+.confirm-desc { font-size: 13px; color: #666; font-style: italic; margin-bottom: 1.25rem; }
+.confirm-btns { display: flex; gap: 8px; }
+.confirm-btn-cancel { flex: 1; padding: 11px; font-size: 12px; border: 1px solid #2d6b4a; border-radius: 3px; background: transparent; color: #666; cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 2px; text-transform: uppercase; transition: all 0.15s; }
+.confirm-btn-cancel:hover { color: #E8DCC3; border-color: #E8DCC3; }
+.confirm-btn-delete { flex: 1; padding: 11px; font-size: 12px; border: 1px solid #8a2d2d; border-radius: 3px; background: #3d1a1a; color: #d86a6a; cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 2px; text-transform: uppercase; transition: all 0.15s; }
+.confirm-btn-delete:hover { background: #5a2020; }
+.confirm-btn-delete:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -158,6 +182,56 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
   <div id="error-screen" style="display:none; text-align:center; padding:2rem; color:#8a2d2d; font-size:13px; letter-spacing:2px; font-style:italic;">— error de conexión —<br><small id="error-msg" style="font-size:11px; margin-top:8px; display:block;"></small></div>
 </div>
 
+<!-- Modal de edición -->
+<div class="modal-overlay" id="modal-edicion">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Editar gasto</div>
+      <button class="modal-close" onclick="cerrarEdicion()">✕</button>
+    </div>
+    <div class="field"><label>Fecha</label><input type="date" id="edit-fecha" /></div>
+    <div class="field"><label>Monto (AUD)</label><input type="number" id="edit-monto" step="0.01" min="0" /></div>
+    <div class="field">
+      <label>Categoría</label>
+      <select id="edit-categoria" onchange="updateEditSubcategorias()"><option value="">— seleccionar —</option></select>
+    </div>
+    <div class="field">
+      <label>Subcategoría</label>
+      <select id="edit-subcategoria"><option value="">— primero elegí categoría —</option></select>
+    </div>
+    <div class="field"><label>Descripción</label><input type="text" id="edit-descripcion" placeholder="detalle del gasto..." /></div>
+    <div class="field">
+      <label>Tipo de gasto</label>
+      <div class="toggle-row">
+        <button class="toggle-btn" id="edit-tipo-compartido" onclick="setEditTipo('compartido')">Compartido</button>
+        <button class="toggle-btn" id="edit-tipo-pablo" onclick="setEditTipo('pablo')">Pablo</button>
+        <button class="toggle-btn" id="edit-tipo-julieta" onclick="setEditTipo('julieta')">Julieta</button>
+      </div>
+    </div>
+    <div class="field" style="margin-top:14px;">
+      <label>¿Quién pagó?</label>
+      <div class="payer-row">
+        <button class="payer-btn" id="edit-payer-pablo" onclick="setEditPayer('pablo')">Pablo</button>
+        <button class="payer-btn" id="edit-payer-julieta" onclick="setEditPayer('julieta')">Julieta</button>
+      </div>
+    </div>
+    <div class="divider" style="margin:14px 0 10px;">✦</div>
+    <button class="submit-btn" id="edit-submit-btn" onclick="guardarEdicion()">Guardar cambios</button>
+  </div>
+</div>
+
+<!-- Modal de confirmación de borrado -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-title">Borrar gasto</div>
+    <div class="confirm-desc">Esta acción no se puede deshacer.</div>
+    <div class="confirm-btns">
+      <button class="confirm-btn-cancel" onclick="cerrarConfirm()">Cancelar</button>
+      <button class="confirm-btn-delete" id="confirm-delete-btn" onclick="confirmarEliminar()">Borrar</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
 <script>
 const SHEET_ID = '1zvOKdJvDo9kwuPbsXm1o9I5SgNV_R-OxUn7oEmskdIY';
@@ -215,9 +289,21 @@ const categorias = {
 
 let gastos=[], tipoActual='compartido', payerActual='pablo';
 let accessToken='', tokenExpiry=0;
+let gastosSheetId=null;
+
+// Estado edición
+let editIndex=-1, editTipoActual='compartido', editPayerActual='pablo';
+
+// Estado confirmación borrado
+let pendingDeleteIndex=-1;
 
 const catSelect = document.getElementById('categoria');
 Object.keys(categorias).forEach(cat => { const o=document.createElement('option'); o.value=cat; o.textContent=cat; catSelect.appendChild(o); });
+
+// Poblar categorías en el select de edición
+const editCatSelect = document.getElementById('edit-categoria');
+Object.keys(categorias).forEach(cat => { const o=document.createElement('option'); o.value=cat; o.textContent=cat; editCatSelect.appendChild(o); });
+
 document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
@@ -245,16 +331,30 @@ async function getAccessToken() {
 }
 
 async function initSheet(token) {
-  const meta=await (await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}?fields=sheets.properties.title`,{headers:{Authorization:'Bearer '+token}})).json();
-  if (!(meta.sheets||[]).some(s=>s.properties.title===SHEET_NAME)) {
-    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}:batchUpdate`,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({requests:[{addSheet:{properties:{title:SHEET_NAME}}}]})});
+  const meta=await (await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}?fields=sheets.properties`,{headers:{Authorization:'Bearer '+token}})).json();
+  const existing=(meta.sheets||[]).find(s=>s.properties.title===SHEET_NAME);
+  if (existing) {
+    gastosSheetId=existing.properties.sheetId;
+  } else {
+    const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}:batchUpdate`,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({requests:[{addSheet:{properties:{title:SHEET_NAME}}}]})});
+    const data=await res.json();
+    gastosSheetId=data.replies[0].addSheet.properties.sheetId;
     await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:append?valueInputOption=RAW`,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[HEADERS]})});
   }
 }
 
 async function loadExistingData(token) {
   const data=await (await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A2:I`,{headers:{Authorization:'Bearer '+token}})).json();
-  gastos=(data.values||[]).map(r=>({fecha:r[0]||'',monto:parseFloat(r[1])||0,categoria:r[2]||'',subcategoria:r[3]||'',descripcion:r[4]||'',tipo:r[5]||'compartido',payer:r[6]||'pablo'})).reverse();
+  gastos=(data.values||[]).map((r,i)=>({
+    fecha:r[0]||'',
+    monto:parseFloat(r[1])||0,
+    categoria:r[2]||'',
+    subcategoria:r[3]||'',
+    descripcion:r[4]||'',
+    tipo:r[5]||'compartido',
+    payer:r[6]||'pablo',
+    rowIndex:i+2  // fila real en el sheet (1-indexed, fila 1 son headers)
+  })).reverse();
   renderHistorial(); calcularSaldo();
 }
 
@@ -325,7 +425,9 @@ async function agregarGasto() {
     await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[row]})});
     showToast('registrado');
   } catch(e){showToast('error: '+e.message,true);btn.disabled=false;btn.textContent='registrar gasto';return;}
-  gastos.unshift({fecha,monto,categoria,subcategoria,descripcion,tipo:tipoActual,payer:payerActual});
+  // El nuevo gasto va al final del sheet, rowIndex = gastos.length + 2
+  const newRowIndex=gastos.length+2;
+  gastos.unshift({fecha,monto,categoria,subcategoria,descripcion,tipo:tipoActual,payer:payerActual,rowIndex:newRowIndex});
   calcularSaldo(); renderHistorial();
   document.getElementById('monto').value='';
   document.getElementById('descripcion').value='';
@@ -337,18 +439,148 @@ async function agregarGasto() {
 function renderHistorial() {
   const list=document.getElementById('expense-list');
   if(!gastos.length){list.innerHTML='<div class="empty-state">— sin registros —</div>';return;}
-  list.innerHTML=gastos.map(g=>`
+  list.innerHTML=gastos.map((g,i)=>`
     <div class="expense-item">
-      <div>
+      <div style="flex:1; min-width:0;">
         <div class="expense-subcat">${g.subcategoria}</div>
         <div class="expense-cat">${g.categoria}</div>
         <div class="expense-meta">${g.fecha} · ${g.descripcion||'sin descripción'} · pagó ${g.payer}</div>
       </div>
-      <div style="text-align:right;">
+      <div style="text-align:right; flex-shrink:0; margin-left:10px;">
         <div class="expense-amount">${fmt(g.monto)}</div>
         <span class="expense-badge badge-${g.tipo}">${g.tipo}</span>
+        <div class="action-btns" style="justify-content:flex-end;">
+          <button class="btn-edit" onclick="abrirEdicion(${i})">editar</button>
+          <button class="btn-delete" onclick="abrirConfirm(${i})">borrar</button>
+        </div>
       </div>
     </div>`).join('');
+}
+
+// ─── ELIMINAR ─────────────────────────────────────────────────────────────────
+
+function abrirConfirm(localIdx) {
+  pendingDeleteIndex=localIdx;
+  document.getElementById('confirm-overlay').classList.add('show');
+}
+
+function cerrarConfirm() {
+  pendingDeleteIndex=-1;
+  document.getElementById('confirm-overlay').classList.remove('show');
+  document.getElementById('confirm-delete-btn').disabled=false;
+}
+
+async function confirmarEliminar() {
+  if (pendingDeleteIndex<0) return;
+  const localIdx=pendingDeleteIndex;
+  const gasto=gastos[localIdx];
+  const rowIndex=gasto.rowIndex;
+  const btn=document.getElementById('confirm-delete-btn');
+  btn.disabled=true; btn.textContent='borrando...';
+  try {
+    const token=await getAccessToken();
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}:batchUpdate`,{
+      method:'POST',
+      headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({requests:[{deleteDimension:{range:{
+        sheetId:gastosSheetId,
+        dimension:'ROWS',
+        startIndex:rowIndex-1,  // 0-indexed
+        endIndex:rowIndex        // exclusive
+      }}}]})
+    });
+    // Actualizar array local
+    gastos.splice(localIdx,1);
+    // Corregir rowIndexes de los gastos que estaban después del eliminado
+    gastos.forEach(g=>{ if(g.rowIndex>rowIndex) g.rowIndex--; });
+    calcularSaldo(); renderHistorial();
+    cerrarConfirm();
+    showToast('eliminado');
+  } catch(e) {
+    showToast('error al eliminar: '+e.message, true);
+    btn.disabled=false; btn.textContent='Borrar';
+  }
+}
+
+// ─── EDITAR ───────────────────────────────────────────────────────────────────
+
+function abrirEdicion(localIdx) {
+  editIndex=localIdx;
+  const g=gastos[localIdx];
+  editTipoActual=g.tipo;
+  editPayerActual=g.payer;
+
+  document.getElementById('edit-fecha').value=g.fecha;
+  document.getElementById('edit-monto').value=g.monto;
+  document.getElementById('edit-categoria').value=g.categoria;
+  updateEditSubcategorias();
+  document.getElementById('edit-subcategoria').value=g.subcategoria;
+  document.getElementById('edit-descripcion').value=g.descripcion;
+  setEditTipo(g.tipo);
+  setEditPayer(g.payer);
+
+  document.getElementById('modal-edicion').style.display='block';
+  window.scrollTo(0,0);
+}
+
+function cerrarEdicion() {
+  document.getElementById('modal-edicion').style.display='none';
+  editIndex=-1;
+  document.getElementById('edit-submit-btn').disabled=false;
+  document.getElementById('edit-submit-btn').textContent='Guardar cambios';
+}
+
+function updateEditSubcategorias() {
+  const cat=document.getElementById('edit-categoria').value;
+  const sub=document.getElementById('edit-subcategoria');
+  sub.innerHTML='';
+  if (!cat) { sub.innerHTML='<option>— primero elegí categoría —</option>'; return; }
+  categorias[cat].forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; sub.appendChild(o); });
+}
+
+function setEditTipo(tipo) {
+  editTipoActual=tipo;
+  ['compartido','pablo','julieta'].forEach(t=>{ document.getElementById('edit-tipo-'+t).className='toggle-btn'+(t===tipo?' active-'+t:''); });
+}
+
+function setEditPayer(p) {
+  editPayerActual=p;
+  ['pablo','julieta'].forEach(x=>{ document.getElementById('edit-payer-'+x).className='payer-btn'+(x===p?' active':''); });
+}
+
+async function guardarEdicion() {
+  if (editIndex<0) return;
+  const fecha=document.getElementById('edit-fecha').value;
+  const monto=parseFloat(document.getElementById('edit-monto').value);
+  const categoria=document.getElementById('edit-categoria').value;
+  const subcategoria=document.getElementById('edit-subcategoria').value;
+  const descripcion=document.getElementById('edit-descripcion').value;
+  if (!fecha||!monto||!categoria||!subcategoria){showToast('completá todos los campos',true);return;}
+
+  const pA=editTipoActual==='compartido'?monto/2:(editTipoActual==='pablo'?monto:0);
+  const jA=editTipoActual==='compartido'?monto/2:(editTipoActual==='julieta'?monto:0);
+  const row=[fecha,monto,categoria,subcategoria,descripcion,editTipoActual,editPayerActual,pA.toFixed(2),jA.toFixed(2)];
+
+  const gasto=gastos[editIndex];
+  const rowIndex=gasto.rowIndex;
+  const btn=document.getElementById('edit-submit-btn');
+  btn.disabled=true; btn.textContent='guardando...';
+
+  try {
+    const token=await getAccessToken();
+    await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A${rowIndex}:I${rowIndex}?valueInputOption=RAW`,
+      {method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[row]})}
+    );
+    // Actualizar array local
+    gastos[editIndex]={fecha,monto,categoria,subcategoria,descripcion,tipo:editTipoActual,payer:editPayerActual,rowIndex};
+    calcularSaldo(); renderHistorial();
+    cerrarEdicion();
+    showToast('actualizado');
+  } catch(e) {
+    showToast('error al guardar: '+e.message, true);
+    btn.disabled=false; btn.textContent='Guardar cambios';
+  }
 }
 
 function showTab(tab) {
