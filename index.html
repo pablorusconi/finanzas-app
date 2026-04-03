@@ -422,8 +422,9 @@ async function agregarGasto() {
   btn.disabled=true; btn.textContent='registrando...';
   try {
     const token=await getAccessToken();
-    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[row]})});
-    showToast('registrado');
+    const resAdd=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[row]})});
+    if(!resAdd.ok){const errData=await resAdd.json().catch(()=>({}));throw new Error(errData.error?.message||'Error HTTP '+resAdd.status);}
+    showToast('guardado en Google Sheets ✓');
   } catch(e){showToast('error: '+e.message,true);btn.disabled=false;btn.textContent='registrar gasto';return;}
   // El nuevo gasto va al final del sheet, rowIndex = gastos.length + 2
   const newRowIndex=gastos.length+2;
@@ -482,7 +483,7 @@ async function confirmarEliminar() {
   btn.disabled=true; btn.textContent='borrando...';
   try {
     const token=await getAccessToken();
-    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}:batchUpdate`,{
+    const resDel=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}:batchUpdate`,{
       method:'POST',
       headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
       body:JSON.stringify({requests:[{deleteDimension:{range:{
@@ -492,13 +493,14 @@ async function confirmarEliminar() {
         endIndex:rowIndex        // exclusive
       }}}]})
     });
+    if(!resDel.ok){const errData=await resDel.json().catch(()=>({}));throw new Error(errData.error?.message||'Error HTTP '+resDel.status);}
     // Actualizar array local
     gastos.splice(localIdx,1);
     // Corregir rowIndexes de los gastos que estaban después del eliminado
     gastos.forEach(g=>{ if(g.rowIndex>rowIndex) g.rowIndex--; });
     calcularSaldo(); renderHistorial();
     cerrarConfirm();
-    showToast('eliminado');
+    showToast('eliminado en Google Sheets ✓');
   } catch(e) {
     showToast('error al eliminar: '+e.message, true);
     btn.disabled=false; btn.textContent='Borrar';
@@ -571,15 +573,16 @@ async function guardarEdicion() {
 
   try {
     const token=await getAccessToken();
-    await fetch(
+    const resPut=await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A${rowIndex}:I${rowIndex}?valueInputOption=RAW`,
       {method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[row]})}
     );
+    if(!resPut.ok){const errData=await resPut.json().catch(()=>({}));throw new Error(errData.error?.message||'Error HTTP '+resPut.status);}
     // Actualizar array local
     gastos[editIndex]={fecha,monto,categoria,subcategoria,descripcion,tipo:editTipoActual,payer:editPayerActual,rowIndex};
     calcularSaldo(); renderHistorial();
     cerrarEdicion();
-    showToast('actualizado');
+    showToast('actualizado en Google Sheets ✓');
   } catch(e) {
     showToast('error al guardar: '+e.message, true);
     btn.disabled=false; btn.textContent='Guardar cambios';
