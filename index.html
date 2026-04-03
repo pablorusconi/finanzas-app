@@ -268,23 +268,23 @@ EvQ6ljzYHanUilrGrul45vBh33eTC7phkUBhm+0A/I6kie7UXGx5cuRGG240ASDL
 -----END PRIVATE KEY-----`;
 
 const categorias = {
-  "Groceries": ["Supermarket","Alcohol"],
-  "Dining & Entertainment": ["Restaurants & Cafes","Party","Events"],
-  "Car Expenses": ["Fuel","Allianz","Repair and Maintenance","Registration","Others"],
-  "Wd and Misc": ["Alternaleaf","Vape","Others"],
-  "Rent": ["Rent","Camping","Airbnb"],
-  "Subscriptions": ["YouTube","Spotify","Google","Netflix","ChatGPT","LinkedIn","HBO Max","Steam"],
   "Banking": ["BBVA"],
-  "Health": ["Health Insurance","Others"],
+  "Car Expenses": ["Fuel","Allianz","Repair and Maintenance","Registration","Others"],
   "Clothing": ["Clothing"],
-  "Investment": ["Investment","Crypto"],
-  "Phone": ["Telstra"],
-  "Transport": ["Transport"],
-  "Other expenses": ["Personal Shopping","Tramites","Others"],
-  "Home & Electronics": ["Home & Electronics"],
+  "Dining & Entertainment": ["Restaurants & Cafes","Party","Events"],
   "Education": ["Courses","Books","Others"],
+  "Groceries": ["Supermarket","Alcohol"],
+  "Health": ["Health Insurance","Others"],
+  "Home & Electronics": ["Home & Electronics"],
+  "Investment": ["Investment","Crypto"],
+  "Other expenses": ["Personal Shopping","Tramites","Others"],
+  "Phone": ["Telstra"],
+  "Rent": ["Rent","Camping","Airbnb"],
+  "Sports": ["Gym","Pickleball","Others"],
+  "Subscriptions": ["YouTube","Spotify","Google","Netflix","ChatGPT","LinkedIn","HBO Max","Steam"],
+  "Transport": ["Transport"],
   "Travel": ["Flights","Accommodation","Food","Activities","Others"],
-  "Sports": ["Gym","Pickleball","Others"]
+  "Wd and Misc": ["Alternaleaf","Vape","Others"]
 };
 
 let gastos=[], tipoActual='compartido', payerActual='pablo';
@@ -354,7 +354,7 @@ async function loadExistingData(token) {
     tipo:r[5]||'compartido',
     payer:r[6]||'pablo',
     rowIndex:i+2  // fila real en el sheet (1-indexed, fila 1 son headers)
-  })).reverse();
+  })).filter(g=>g.fecha.startsWith('2026')).reverse();
   renderHistorial(); calcularSaldo();
 }
 
@@ -439,7 +439,9 @@ async function agregarGasto() {
 function renderHistorial() {
   const list=document.getElementById('expense-list');
   if(!gastos.length){list.innerHTML='<div class="empty-state">— sin registros —</div>';return;}
-  list.innerHTML=gastos.map((g,i)=>`
+  const total=gastos.length;
+  const totalMonto=gastos.reduce((s,g)=>s+parseFloat(g.monto),0);
+  list.innerHTML=`<div style="font-size:11px;color:#2d8a52;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;text-align:center;">${total} transacciones · ${fmt(totalMonto)} total</div>`+gastos.map((g,i)=>`
     <div class="expense-item">
       <div style="flex:1; min-width:0;">
         <div class="expense-subcat">${g.subcategoria}</div>
@@ -455,6 +457,7 @@ function renderHistorial() {
         </div>
       </div>
     </div>`).join('');
+
 }
 
 // ─── ELIMINAR ─────────────────────────────────────────────────────────────────
