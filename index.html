@@ -62,6 +62,8 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 .badge-compartido { background: #1a3d28; color: #4db87a; border: 1px solid #2d6b4a; }
 .badge-pablo { background: #1a2a3d; color: #6a9fd8; border: 1px solid #2a4a6b; }
 .badge-julieta { background: #3d1a2a; color: #d86a9f; border: 1px solid #6b2a4a; }
+.badge-transferencia { background: #2d2a1a; color: #d4b85a; border: 1px solid #6b5a1a; }
+.toggle-btn.active-transferencia { background: #2d2a1a; color: #d4b85a; }
 .action-btns { display: flex; gap: 5px; margin-top: 6px; }
 .btn-edit { background: none; border: 1px solid #2d6b4a; border-radius: 2px; color: #2d8a52; cursor: pointer; padding: 3px 8px; font-size: 10px; font-family: 'DM Sans', sans-serif; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; }
 .btn-edit:hover { background: #1a3d28; }
@@ -129,11 +131,11 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
       <div class="card">
         <div class="field"><label>Fecha</label><input type="date" id="fecha" /></div>
         <div class="field"><label>Monto (AUD)</label><input type="number" id="monto" placeholder="0.00" step="0.01" min="0" /></div>
-        <div class="field">
+        <div class="field" id="field-categoria">
           <label>Categoría</label>
           <select id="categoria" onchange="updateSubcategorias()"><option value="">— seleccionar —</option></select>
         </div>
-        <div class="field">
+        <div class="field" id="field-subcategoria">
           <label>Subcategoría</label>
           <select id="subcategoria"><option value="">— primero elegí categoría —</option></select>
         </div>
@@ -144,10 +146,11 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
             <button class="toggle-btn active-compartido" id="tipo-compartido" onclick="setTipo('compartido')">Compartido</button>
             <button class="toggle-btn" id="tipo-pablo" onclick="setTipo('pablo')">Pablo</button>
             <button class="toggle-btn" id="tipo-julieta" onclick="setTipo('julieta')">Julieta</button>
+            <button class="toggle-btn" id="tipo-transferencia" onclick="setTipo('transferencia')">Transf.</button>
           </div>
         </div>
         <div class="field" style="margin-top:14px;">
-          <label>¿Quién pagó?</label>
+          <label id="payer-label">¿Quién pagó?</label>
           <div class="payer-row">
             <button class="payer-btn active" id="payer-pablo" onclick="setPayer('pablo')">Pablo</button>
             <button class="payer-btn" id="payer-julieta" onclick="setPayer('julieta')">Julieta</button>
@@ -191,11 +194,11 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
     </div>
     <div class="field"><label>Fecha</label><input type="date" id="edit-fecha" /></div>
     <div class="field"><label>Monto (AUD)</label><input type="number" id="edit-monto" step="0.01" min="0" /></div>
-    <div class="field">
+    <div class="field" id="edit-field-categoria">
       <label>Categoría</label>
       <select id="edit-categoria" onchange="updateEditSubcategorias()"><option value="">— seleccionar —</option></select>
     </div>
-    <div class="field">
+    <div class="field" id="edit-field-subcategoria">
       <label>Subcategoría</label>
       <select id="edit-subcategoria"><option value="">— primero elegí categoría —</option></select>
     </div>
@@ -206,10 +209,11 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
         <button class="toggle-btn" id="edit-tipo-compartido" onclick="setEditTipo('compartido')">Compartido</button>
         <button class="toggle-btn" id="edit-tipo-pablo" onclick="setEditTipo('pablo')">Pablo</button>
         <button class="toggle-btn" id="edit-tipo-julieta" onclick="setEditTipo('julieta')">Julieta</button>
+        <button class="toggle-btn" id="edit-tipo-transferencia" onclick="setEditTipo('transferencia')">Transf.</button>
       </div>
     </div>
     <div class="field" style="margin-top:14px;">
-      <label>¿Quién pagó?</label>
+      <label id="edit-payer-label">¿Quién pagó?</label>
       <div class="payer-row">
         <button class="payer-btn" id="edit-payer-pablo" onclick="setEditPayer('pablo')">Pablo</button>
         <button class="payer-btn" id="edit-payer-julieta" onclick="setEditPayer('julieta')">Julieta</button>
@@ -385,7 +389,11 @@ function updateSubcategorias() {
 
 function setTipo(tipo) {
   tipoActual=tipo;
-  ['compartido','pablo','julieta'].forEach(t=>{ document.getElementById('tipo-'+t).className='toggle-btn'+(t===tipo?' active-'+t:''); });
+  ['compartido','pablo','julieta','transferencia'].forEach(t=>{ document.getElementById('tipo-'+t).className='toggle-btn'+(t===tipo?' active-'+t:''); });
+  const isTransf=tipo==='transferencia';
+  document.getElementById('field-categoria').style.display=isTransf?'none':'';
+  document.getElementById('field-subcategoria').style.display=isTransf?'none':'';
+  document.getElementById('payer-label').textContent=isTransf?'¿Quién envió?':'¿Quién pagó?';
 }
 
 function setPayer(p) {
@@ -396,13 +404,23 @@ function setPayer(p) {
 function fmt(n) { return '$'+parseFloat(n).toFixed(2); }
 
 function calcularSaldo() {
-  let pP=0,jP=0,pD=0,jD=0;
-  gastos.forEach(g=>{ const m=parseFloat(g.monto); if(g.payer==='pablo') pP+=m; else jP+=m; if(g.tipo==='compartido'){pD+=m/2;jD+=m/2;} else if(g.tipo==='pablo') pD+=m; else jD+=m; });
+  let pP=0,jP=0,pD=0,jD=0,transferBalance=0;
+  gastos.forEach(g=>{
+    const m=parseFloat(g.monto);
+    if(g.tipo==='transferencia'){
+      // Pablo envía a Julieta → su balance sube (paga deuda o da préstamo)
+      // Julieta envía a Pablo → su balance baja (salda lo que le debe)
+      if(g.payer==='pablo') transferBalance+=m; else transferBalance-=m;
+      return;
+    }
+    if(g.payer==='pablo') pP+=m; else jP+=m;
+    if(g.tipo==='compartido'){pD+=m/2;jD+=m/2;} else if(g.tipo==='pablo') pD+=m; else jD+=m;
+  });
   document.getElementById('pablo-pago').textContent=fmt(pP);
   document.getElementById('julieta-pago').textContent=fmt(jP);
   document.getElementById('pablo-gastos').textContent=fmt(pD);
   document.getElementById('julieta-gastos').textContent=fmt(jD);
-  const bal=pP-pD; let t,d,c;
+  const bal=(pP-pD)+transferBalance; let t,d,c;
   if(Math.abs(bal)<0.01){t='$0.00';d='están a mano';c='';}
   else if(bal>0){t=fmt(bal);d='julieta le debe a pablo';c='balance-positive';}
   else{t=fmt(Math.abs(bal));d='pablo le debe a julieta';c='balance-negative';}
@@ -411,12 +429,14 @@ function calcularSaldo() {
 }
 
 async function agregarGasto() {
+  const isTransf=tipoActual==='transferencia';
   const fecha=document.getElementById('fecha').value, monto=parseFloat(document.getElementById('monto').value);
-  const categoria=document.getElementById('categoria').value, subcategoria=document.getElementById('subcategoria').value;
+  const categoria=isTransf?'Transferencia':document.getElementById('categoria').value;
+  const subcategoria=isTransf?'Transferencia':document.getElementById('subcategoria').value;
   const descripcion=document.getElementById('descripcion').value;
-  if(!fecha||!monto||!categoria||!subcategoria){showToast('completá todos los campos',true);return;}
-  const pA=tipoActual==='compartido'?monto/2:(tipoActual==='pablo'?monto:0);
-  const jA=tipoActual==='compartido'?monto/2:(tipoActual==='julieta'?monto:0);
+  if(!fecha||!monto||(!isTransf&&(!categoria||!subcategoria))){showToast('completá todos los campos',true);return;}
+  const pA=isTransf?0:(tipoActual==='compartido'?monto/2:(tipoActual==='pablo'?monto:0));
+  const jA=isTransf?0:(tipoActual==='compartido'?monto/2:(tipoActual==='julieta'?monto:0));
   const row=[fecha,monto,categoria,subcategoria,descripcion,tipoActual,payerActual,pA.toFixed(2),jA.toFixed(2)];
   const btn=document.getElementById('submit-btn');
   btn.disabled=true; btn.textContent='registrando...';
@@ -447,7 +467,7 @@ function renderHistorial() {
       <div style="flex:1; min-width:0;">
         <div class="expense-subcat">${g.subcategoria}</div>
         <div class="expense-cat">${g.categoria}</div>
-        <div class="expense-meta">${g.fecha} · ${g.descripcion||'sin descripción'} · pagó ${g.payer}</div>
+        <div class="expense-meta">${g.fecha} · ${g.descripcion||'sin descripción'} · ${g.tipo==='transferencia'?'envió':'pagó'} ${g.payer}</div>
       </div>
       <div style="text-align:right; flex-shrink:0; margin-left:10px;">
         <div class="expense-amount">${fmt(g.monto)}</div>
@@ -545,7 +565,11 @@ function updateEditSubcategorias() {
 
 function setEditTipo(tipo) {
   editTipoActual=tipo;
-  ['compartido','pablo','julieta'].forEach(t=>{ document.getElementById('edit-tipo-'+t).className='toggle-btn'+(t===tipo?' active-'+t:''); });
+  ['compartido','pablo','julieta','transferencia'].forEach(t=>{ document.getElementById('edit-tipo-'+t).className='toggle-btn'+(t===tipo?' active-'+t:''); });
+  const isTransf=tipo==='transferencia';
+  document.getElementById('edit-field-categoria').style.display=isTransf?'none':'';
+  document.getElementById('edit-field-subcategoria').style.display=isTransf?'none':'';
+  document.getElementById('edit-payer-label').textContent=isTransf?'¿Quién envió?':'¿Quién pagó?';
 }
 
 function setEditPayer(p) {
@@ -555,15 +579,16 @@ function setEditPayer(p) {
 
 async function guardarEdicion() {
   if (editIndex<0) return;
+  const isTransf=editTipoActual==='transferencia';
   const fecha=document.getElementById('edit-fecha').value;
   const monto=parseFloat(document.getElementById('edit-monto').value);
-  const categoria=document.getElementById('edit-categoria').value;
-  const subcategoria=document.getElementById('edit-subcategoria').value;
+  const categoria=isTransf?'Transferencia':document.getElementById('edit-categoria').value;
+  const subcategoria=isTransf?'Transferencia':document.getElementById('edit-subcategoria').value;
   const descripcion=document.getElementById('edit-descripcion').value;
-  if (!fecha||!monto||!categoria||!subcategoria){showToast('completá todos los campos',true);return;}
+  if (!fecha||!monto||(!isTransf&&(!categoria||!subcategoria))){showToast('completá todos los campos',true);return;}
 
-  const pA=editTipoActual==='compartido'?monto/2:(editTipoActual==='pablo'?monto:0);
-  const jA=editTipoActual==='compartido'?monto/2:(editTipoActual==='julieta'?monto:0);
+  const pA=isTransf?0:(editTipoActual==='compartido'?monto/2:(editTipoActual==='pablo'?monto:0));
+  const jA=isTransf?0:(editTipoActual==='compartido'?monto/2:(editTipoActual==='julieta'?monto:0));
   const row=[fecha,monto,categoria,subcategoria,descripcion,editTipoActual,editPayerActual,pA.toFixed(2),jA.toFixed(2)];
 
   const gasto=gastos[editIndex];
