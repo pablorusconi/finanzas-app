@@ -117,7 +117,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 
   <div id="main-content" style="display:none;">
     <div class="tab-bar">
-      <button class="tab active" onclick="showTab('cargar')">Cargar</button>
+      <button class="tab active" onclick="showTab('cargar')">Gastos</button>
       <button class="tab" onclick="showTab('historial')">Historial</button>
       <button class="tab" onclick="showTab('saldo')">Saldo</button>
       <button class="tab" onclick="showTab('ingresos')">Ingresos</button>
@@ -174,9 +174,14 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
       </div>
       <div class="card">
         <div class="field"><label>Fecha</label><input type="date" id="i-fecha" /></div>
+        <div class="field">
+          <label>Categoría</label>
+          <select id="i-cat"><option value="">— seleccionar —</option></select>
+        </div>
+        <div class="field"><label>Descripción <span style="color:#555;font-size:10px;letter-spacing:0;text-transform:none;font-style:italic;">(opcional)</span></label><input type="text" id="i-desc" placeholder="detalle del ingreso..." /></div>
         <div class="field"><label>Bruto (AUD)</label><input type="number" id="i-gross" placeholder="0.00" step="0.01" min="0" oninput="calcularNet()" /></div>
-        <div class="field"><label>Tax retenido (AUD)</label><input type="number" id="i-tax" placeholder="0.00" step="0.01" min="0" oninput="calcularNet()" /></div>
-        <div class="field"><label>Superannuation (AUD)</label><input type="number" id="i-super" placeholder="0.00" step="0.01" min="0" /></div>
+        <div class="field"><label>Tax retenido (AUD) <span style="color:#555;font-size:10px;letter-spacing:0;text-transform:none;font-style:italic;">(opcional)</span></label><input type="number" id="i-tax" placeholder="0.00" step="0.01" min="0" oninput="calcularNet()" /></div>
+        <div class="field"><label>Superannuation (AUD) <span style="color:#555;font-size:10px;letter-spacing:0;text-transform:none;font-style:italic;">(opcional)</span></label><input type="number" id="i-super" placeholder="0.00" step="0.01" min="0" /></div>
         <div class="field"><label>Neto (AUD)</label><input type="number" id="i-net" placeholder="auto-calculado" step="0.01" min="0" /></div>
         <div class="divider" style="margin:14px 0 10px;">✦</div>
         <button class="submit-btn" id="ing-submit-btn" onclick="agregarIngreso()">Registrar ingreso</button>
@@ -262,7 +267,8 @@ const CLIENT_EMAIL = 'finanzas-app@app-finanzas-490205.iam.gserviceaccount.com';
 const SHEET_NAME = 'Gastos App';
 const HEADERS = ['Date','Amount','Category','Subcategory','Description','Type','Paid_by','Pablo_amount','Julieta_amount'];
 const INCOME_SHEET_NAME = 'Incomes 2026';
-const INCOME_HEADERS = ['Date','Gross','Tax','Super','Net'];
+const INCOME_HEADERS = ['Date','Gross','Tax','Super','Net','Category','Description','Tax_pct','Super_pct'];
+const incomeCats = ['Salary','Freelance','Dividends','Investments','Crypto / Stocks','Gift','Prize','Other'];
 const PRIVATE_KEY = `-----BEGIN PRIVATE KEY-----
 MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDBnYB8FDsp1wk/
 qx10fxnwWylEn3GNqFGPL9kYfeaqk9c2o/QNaM7V87OFLwMGLnN3uDMkTSjTAIiu
@@ -334,6 +340,10 @@ const today = new Date().toISOString().split('T')[0];
 document.getElementById('fecha').value = today;
 document.getElementById('i-fecha').value = today;
 
+// Poblar categorías de ingresos
+const iCatSelect = document.getElementById('i-cat');
+incomeCats.forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; iCatSelect.appendChild(o); });
+
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
 function showToast(msg, isError=false) {
@@ -377,6 +387,8 @@ async function initSheet(token) {
   const incomesSheet=sheets.find(s=>s.properties.title===INCOME_SHEET_NAME);
   if (incomesSheet) {
     ingresosSheetId=incomesSheet.properties.sheetId;
+    // Actualizar headers por si cambiaron
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${INCOME_SHEET_NAME}!A1:I1?valueInputOption=RAW`,{method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[INCOME_HEADERS]})});
   } else {
     const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}:batchUpdate`,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({requests:[{addSheet:{properties:{title:INCOME_SHEET_NAME}}}]})});
     const data=await res.json();
@@ -388,7 +400,7 @@ async function initSheet(token) {
 async function loadExistingData(token) {
   const [gastosRes, ingresosRes] = await Promise.all([
     fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A2:I`,{headers:{Authorization:'Bearer '+token}}),
-    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${INCOME_SHEET_NAME}!A2:E`,{headers:{Authorization:'Bearer '+token}})
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${INCOME_SHEET_NAME}!A2:I`,{headers:{Authorization:'Bearer '+token}})
   ]);
   const data=await gastosRes.json();
   gastos=(data.values||[]).map((r,i)=>({
@@ -409,6 +421,10 @@ async function loadExistingData(token) {
     tax:parseFloat(r[2])||0,
     super:parseFloat(r[3])||0,
     net:parseFloat(r[4])||0,
+    category:r[5]||'',
+    description:r[6]||'',
+    taxPct:r[7]||'0',
+    superPct:r[8]||'0',
     rowIndex:i+2
   })).reverse();
 
@@ -674,6 +690,7 @@ function calcularNet() {
   const gross=parseFloat(document.getElementById('i-gross').value)||0;
   const tax=parseFloat(document.getElementById('i-tax').value)||0;
   if(gross>0) document.getElementById('i-net').value=(gross-tax).toFixed(2);
+  else document.getElementById('i-net').value='';
 }
 
 function calcularResumenIngresos() {
@@ -688,15 +705,19 @@ function calcularResumenIngresos() {
 function renderIngresos() {
   const list=document.getElementById('income-list');
   if(!ingresos.length){list.innerHTML='<div class="empty-state">— sin registros —</div>';return;}
-  list.innerHTML=ingresos.map((g,i)=>`
+  list.innerHTML=ingresos.map((g,i)=>{
+    const taxPct=g.gross>0&&g.tax>0?((g.tax/g.gross)*100).toFixed(1)+'%':'—';
+    const superPct=g.gross>0&&g.super>0?((g.super/g.gross)*100).toFixed(1)+'%':'—';
+    return `
     <div class="expense-item">
       <div style="flex:1;min-width:0;">
-        <div class="expense-cat">Payslip</div>
+        <div class="expense-cat">${g.category||'Ingreso'}</div>
+        <div class="expense-subcat">${g.description||''}</div>
         <div class="expense-meta">${g.fecha}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-top:8px;">
           <div><div class="stat-label" style="font-size:9px;">Bruto</div><div style="font-size:13px;color:#E8DCC3;font-family:'DM Serif Display',serif;">${fmt(g.gross)}</div></div>
-          <div><div class="stat-label" style="font-size:9px;">Tax</div><div style="font-size:13px;color:#8a4a2d;font-family:'DM Serif Display',serif;">${fmt(g.tax)}</div></div>
-          <div><div class="stat-label" style="font-size:9px;">Super</div><div style="font-size:13px;color:#6a9fd8;font-family:'DM Serif Display',serif;">${fmt(g.super)}</div></div>
+          <div><div class="stat-label" style="font-size:9px;">Tax <span style="color:#555;">${taxPct}</span></div><div style="font-size:13px;color:#8a4a2d;font-family:'DM Serif Display',serif;">${fmt(g.tax)}</div></div>
+          <div><div class="stat-label" style="font-size:9px;">Super <span style="color:#555;">${superPct}</span></div><div style="font-size:13px;color:#6a9fd8;font-family:'DM Serif Display',serif;">${fmt(g.super)}</div></div>
           <div><div class="stat-label" style="font-size:9px;">Neto</div><div style="font-size:13px;color:#4db87a;font-family:'DM Serif Display',serif;">${fmt(g.net)}</div></div>
         </div>
       </div>
@@ -705,17 +726,22 @@ function renderIngresos() {
           <button class="btn-delete" onclick="borrarIngreso(${i})">borrar</button>
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 async function agregarIngreso() {
   const fecha=document.getElementById('i-fecha').value;
+  const category=document.getElementById('i-cat').value;
+  const description=document.getElementById('i-desc').value;
   const gross=parseFloat(document.getElementById('i-gross').value);
-  const tax=parseFloat(document.getElementById('i-tax').value);
-  const superVal=parseFloat(document.getElementById('i-super').value);
+  const tax=parseFloat(document.getElementById('i-tax').value)||0;
+  const superVal=parseFloat(document.getElementById('i-super').value)||0;
   const net=parseFloat(document.getElementById('i-net').value);
-  if(!fecha||isNaN(gross)||isNaN(tax)||isNaN(superVal)||isNaN(net)){showToast('completá todos los campos',true);return;}
-  const row=[fecha,gross.toFixed(2),tax.toFixed(2),superVal.toFixed(2),net.toFixed(2)];
+  if(!fecha||!category||isNaN(gross)||gross<=0||isNaN(net)||net<=0){showToast('completá fecha, categoría, bruto y neto',true);return;}
+  const taxPct=gross>0?((tax/gross)*100).toFixed(2):'0';
+  const superPct=gross>0?((superVal/gross)*100).toFixed(2):'0';
+  const row=[fecha,gross.toFixed(2),tax.toFixed(2),superVal.toFixed(2),net.toFixed(2),category,description,taxPct,superPct];
   const btn=document.getElementById('ing-submit-btn');
   btn.disabled=true; btn.textContent='registrando...';
   try {
@@ -725,9 +751,10 @@ async function agregarIngreso() {
     showToast('ingreso guardado en Google Sheets ✓');
   } catch(e){showToast('error: '+e.message,true);btn.disabled=false;btn.textContent='registrar ingreso';return;}
   const newRowIndex=ingresos.length+2;
-  ingresos.unshift({fecha,gross,tax,super:superVal,net,rowIndex:newRowIndex});
+  ingresos.unshift({fecha,gross,tax,super:superVal,net,category,description,taxPct,superPct,rowIndex:newRowIndex});
   calcularResumenIngresos(); renderIngresos();
-  ['i-gross','i-tax','i-super','i-net'].forEach(id=>document.getElementById(id).value='');
+  ['i-gross','i-tax','i-super','i-net','i-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('i-cat').value='';
   btn.disabled=false; btn.textContent='registrar ingreso';
 }
 
