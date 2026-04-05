@@ -227,41 +227,38 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 
     <!-- ─── DASHBOARD TAB ─── -->
     <div id="tab-dash" style="display:none;">
-      <div class="dash-subtab-bar">
-        <button class="dash-subtab active" id="dsubtab-egresos" onclick="showDashTab('egresos')">Egresos</button>
-        <button class="dash-subtab" id="dsubtab-semanales" onclick="showDashTab('semanales')">Semanal</button>
-        <button class="dash-subtab" id="dsubtab-ingresos" onclick="showDashTab('ingresos')">Ingresos</button>
+
+      <!-- Filtro global de año -->
+      <div class="dash-filter-row" style="margin-bottom:0.75rem;">
+        <select class="dash-filter-select" id="dash-filtro-anio" onchange="renderActiveDashTab()">
+          <option value="all">Todos los años</option>
+        </select>
       </div>
 
-      <!-- Dashboard 1: Egresos -->
-      <div id="dash-egresos">
-        <div class="dash-filter-row">
-          <select class="dash-filter-select" id="dash-filtro-anio" onchange="renderDashEgresos()">
-            <option value="2026" selected>2026</option>
-          </select>
-          <select class="dash-filter-select" id="dash-filtro-tipo" onchange="renderDashEgresos()">
-            <option value="all">Todos los tipos</option>
-            <option value="compartido">Compartido</option>
-            <option value="pablo">Pablo</option>
-            <option value="julieta">Julieta</option>
-          </select>
-        </div>
-        <div class="dash-kpi-grid" id="dash-kpi-egresos"></div>
+      <!-- Sub-tabs -->
+      <div class="dash-subtab-bar">
+        <button class="dash-subtab active" id="dsubtab-vision" onclick="showDashTab('vision')">Visión</button>
+        <button class="dash-subtab" id="dsubtab-semanales" onclick="showDashTab('semanales')">Semanal</button>
+      </div>
+
+      <!-- Dashboard Visión: ingresos + egresos combinados -->
+      <div id="dash-vision">
+        <div class="dash-kpi-grid" style="grid-template-columns:1fr 1fr 1fr;" id="dash-kpi-vision"></div>
         <div class="chart-card">
-          <div class="chart-title">Egresos por mes</div>
-          <div style="position:relative;height:170px;"><canvas id="chart-line-mensual"></canvas></div>
+          <div class="chart-title">Ingresos vs Egresos por mes</div>
+          <div style="position:relative;height:200px;"><canvas id="chart-line-mensual"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Mes · Total · Acumulado</div>
-          <table class="dash-table" id="dash-tabla-mensual"></table>
+          <div class="chart-title">Mes · Ingresos · Egresos · Diferencia</div>
+          <div style="overflow-x:auto;"><table class="dash-table" id="dash-tabla-mensual"></table></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Por categoría</div>
+          <div class="chart-title">Egresos por categoría</div>
           <div id="chart-bar-cat-wrap" style="position:relative;height:180px;"><canvas id="chart-bar-cat"></canvas></div>
         </div>
       </div>
 
-      <!-- Dashboard 2: Promedios Semanales -->
+      <!-- Dashboard Semanal -->
       <div id="dash-semanales" style="display:none;">
         <div class="dash-filter-row">
           <select class="dash-filter-select" id="dash-filtro-mitad" onchange="renderDashSemanales()">
@@ -273,17 +270,12 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
         <div class="dash-kpi-grid" id="dash-kpi-semanales"></div>
         <div class="chart-card">
           <div class="chart-title">Promedio acumulado semanal</div>
-          <div style="position:relative;height:170px;"><canvas id="chart-line-semanal"></canvas></div>
+          <div style="position:relative;height:200px;"><canvas id="chart-line-semanal"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Promedio semanal por categoría</div>
+          <div class="chart-title">Promedio semanal egresos por categoría</div>
           <table class="dash-table" id="dash-tabla-semanal"></table>
         </div>
-      </div>
-
-      <!-- Ingresos placeholder -->
-      <div id="dash-ingresos" style="display:none;">
-        <div class="dash-placeholder">— próximamente —</div>
       </div>
     </div>
   </div>
@@ -406,7 +398,7 @@ let gastos=[], tipoActual='compartido', payerActual='pablo';
 let ingresos=[], ingresosSheetId=null;
 let accessToken='', tokenExpiry=0;
 let gastosSheetId=null;
-let gastosHistorico=[];
+let gastosHistorico=[], ingresosHistorico=[];
 
 // Estado edición
 let editIndex=-1, editTipoActual='compartido', editPayerActual='pablo';
@@ -484,11 +476,14 @@ async function initSheet(token) {
 
 async function loadExistingData(token) {
   const h={Authorization:'Bearer '+token};
-  const [gastosRes, ingresosRes, hist24Res, hist25Res] = await Promise.all([
-    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A2:I`,{headers:h}),
-    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${INCOME_SHEET_NAME}!A2:I`,{headers:h}),
-    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Expenses 2024!A2:F`,{headers:h}).catch(()=>null),
-    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Expenses 2025!A2:F`,{headers:h}).catch(()=>null)
+  const enc=s=>encodeURIComponent(s);
+  const [gastosRes, ingresosRes, hE24, hE25, hI24, hI25] = await Promise.all([
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${enc(SHEET_NAME)}!A2:I`,{headers:h}),
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${enc(INCOME_SHEET_NAME)}!A2:I`,{headers:h}),
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${enc('Expenses 2024')}!A2:F`,{headers:h}).catch(()=>null),
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${enc('Expenses 2025')}!A2:F`,{headers:h}).catch(()=>null),
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${enc('Incomes 2024')}!A2:G`,{headers:h}).catch(()=>null),
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${enc('Incomes 2025')}!A2:G`,{headers:h}).catch(()=>null)
   ]);
 
   const data=await gastosRes.json();
@@ -517,15 +512,28 @@ async function loadExistingData(token) {
     rowIndex:i+2
   })).reverse();
 
-  // Cargar años históricos solo para dashboards
+  // Históricos solo para dashboards
   gastosHistorico=[];
-  for (const [res, year] of [[hist24Res,'2024'],[hist25Res,'2025']]) {
-    if (!res) continue;
+  for (const [res, year] of [[hE24,'2024'],[hE25,'2025']]) {
+    if(!res) continue;
     try {
       const d=await res.json();
       (d.values||[]).forEach(r=>{
         const g={fecha:r[0]||'',monto:parseFloat(r[1])||0,categoria:r[2]||'',subcategoria:r[3]||'',descripcion:r[4]||'',tipo:'pablo',payer:'pablo'};
         if(g.fecha.startsWith(year)&&g.monto>0) gastosHistorico.push(g);
+      });
+    } catch(e){}
+  }
+
+  ingresosHistorico=[];
+  for (const [res, year] of [[hI24,'2024'],[hI25,'2025']]) {
+    if(!res) continue;
+    try {
+      const d=await res.json();
+      (d.values||[]).forEach(r=>{
+        const net=parseFloat(r[4])||parseFloat(r[1])||0;
+        const g={fecha:r[0]||'',gross:parseFloat(r[1])||0,net,category:r[5]||''};
+        if(g.fecha.startsWith(year)&&g.net>0) ingresosHistorico.push(g);
       });
     } catch(e){}
   }
@@ -866,13 +874,23 @@ let chartLineMensual=null, chartBarCat=null, chartLineSemanal=null;
 const MNAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
 function showDashTab(tab) {
-  ['egresos','semanales','ingresos'].forEach(t=>{
+  ['vision','semanales'].forEach(t=>{
     document.getElementById('dash-'+t).style.display=t===tab?'block':'none';
     document.getElementById('dsubtab-'+t).className='dash-subtab'+(t===tab?' active':'');
   });
-  if(tab==='egresos') renderDashEgresos();
+  if(tab==='vision') renderDashVision();
   else if(tab==='semanales') renderDashSemanales();
 }
+
+function renderActiveDashTab() {
+  const active=document.querySelector('.dash-subtab.active');
+  if(!active) return;
+  const tab=active.id.replace('dsubtab-','');
+  if(tab==='vision') renderDashVision();
+  else if(tab==='semanales') renderDashSemanales();
+}
+
+function getInNet(g){ return parseFloat(g.net)||parseFloat(g.gross)||0; }
 
 function getISOWeek(date) {
   const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
@@ -882,82 +900,88 @@ function getISOWeek(date) {
   return Math.ceil((((d-yearStart)/86400000)+1)/7);
 }
 
-function renderDashEgresos() {
-  if(!document.getElementById('dash-kpi-egresos')) return;
+function renderDashVision() {
+  if(!document.getElementById('dash-kpi-vision')) return;
 
-  const allG=[...gastosHistorico, ...gastos];
+  const allG=[...gastosHistorico,...gastos];
+  const allI=[...ingresosHistorico,...ingresos];
 
-  // Populate año options dynamically
-  const years=[...new Set(allG.map(g=>g.fecha.slice(0,4)).filter(Boolean))].sort().reverse();
+  // Populate año options
+  const years=[...new Set([...allG,...allI].map(g=>g.fecha.slice(0,4)).filter(Boolean))].sort().reverse();
   const aSel=document.getElementById('dash-filtro-anio');
-  const curAnio=aSel.value;
+  const cur=aSel.value;
   aSel.innerHTML='<option value="all">Todos</option>'+years.map(y=>`<option value="${y}">${y}</option>`).join('');
-  if(years.includes(curAnio)) aSel.value=curAnio; else if(years.length) aSel.value=years[0];
+  if(years.includes(cur)) aSel.value=cur; else if(years.length) aSel.value=years[0];
+  const av=aSel.value;
 
-  const anio=aSel.value;
-  const tipo=document.getElementById('dash-filtro-tipo').value;
-
-  const filtered=allG.filter(g=>{
-    if(g.tipo==='transferencia') return false;
-    if(anio!=='all'&&!g.fecha.startsWith(anio)) return false;
-    if(tipo!=='all'&&g.tipo!==tipo) return false;
-    return true;
-  });
+  const fG=allG.filter(g=>g.tipo!=='transferencia'&&(av==='all'||g.fecha.startsWith(av)));
+  const fI=allI.filter(g=>av==='all'||g.fecha.startsWith(av));
 
   // Monthly aggregation
-  const mMap={};
-  filtered.forEach(g=>{
-    const d=new Date(g.fecha);
-    const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    mMap[k]=(mMap[k]||0)+parseFloat(g.monto);
-  });
-  const mKeys=Object.keys(mMap).sort();
+  const mEg={}, mIn={};
+  fG.forEach(g=>{ const k=g.fecha.slice(0,7); mEg[k]=(mEg[k]||0)+parseFloat(g.monto); });
+  fI.forEach(g=>{ const k=g.fecha.slice(0,7); mIn[k]=(mIn[k]||0)+getInNet(g); });
+  const allKeys=[...new Set([...Object.keys(mEg),...Object.keys(mIn)])].sort();
+  const multiYear=av==='all'&&years.length>1;
 
   // KPIs
-  const total=filtered.reduce((s,g)=>s+parseFloat(g.monto),0);
-  const promM=mKeys.length?total/mKeys.length:0;
-  document.getElementById('dash-kpi-egresos').innerHTML=
-    `<div class="dash-kpi"><div class="dash-kpi-label">Total Egresos</div><div class="dash-kpi-value">${fmt(total)}</div></div>`+
-    `<div class="dash-kpi"><div class="dash-kpi-label">Prom. Mensual</div><div class="dash-kpi-value">${fmt(promM)}</div></div>`;
+  const totEg=fG.reduce((s,g)=>s+parseFloat(g.monto),0);
+  const totIn=fI.reduce((s,g)=>s+getInNet(g),0);
+  const diff=totIn-totEg;
+  const dc=diff>=0?'#4db87a':'#c47a2d';
+  document.getElementById('dash-kpi-vision').innerHTML=
+    `<div class="dash-kpi"><div class="dash-kpi-label">Ingresos</div><div class="dash-kpi-value" style="color:#4db87a">${fmt(totIn)}</div></div>`+
+    `<div class="dash-kpi"><div class="dash-kpi-label">Egresos</div><div class="dash-kpi-value" style="color:#c47a2d">${fmt(totEg)}</div></div>`+
+    `<div class="dash-kpi"><div class="dash-kpi-label">Diferencia</div><div class="dash-kpi-value" style="color:${dc}">${diff>=0?'+':'-'}${fmt(Math.abs(diff))}</div></div>`;
 
-  // Line chart: monthly
+  // Dual line chart: ingresos + egresos por mes
   if(chartLineMensual) chartLineMensual.destroy();
   chartLineMensual=new Chart(document.getElementById('chart-line-mensual'),{
     type:'line',
     data:{
-      labels:mKeys.map(k=>{const[,m]=k.split('-');return MNAMES[parseInt(m)-1];}),
-      datasets:[{data:mKeys.map(k=>+mMap[k].toFixed(2)),borderColor:'#2d8a52',backgroundColor:'rgba(45,138,82,0.12)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#2d8a52',tension:0.3,fill:true}]
+      labels:allKeys.map(k=>{const[y,m]=k.split('-');return MNAMES[parseInt(m)-1]+(multiYear?` '${y.slice(2)}`:'');}),
+      datasets:[
+        {label:'Ingresos',data:allKeys.map(k=>+((mIn[k]||0).toFixed(2))),borderColor:'#4db87a',backgroundColor:'rgba(77,184,122,0.06)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#4db87a',tension:0.3,fill:false},
+        {label:'Egresos', data:allKeys.map(k=>+((mEg[k]||0).toFixed(2))),borderColor:'#c47a2d',backgroundColor:'rgba(196,122,45,0.06)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#c47a2d',tension:0.3,fill:false}
+      ]
     },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
-      x:{ticks:{color:'#9a8a6a',font:{size:10}},grid:{color:'#1e1e18'},border:{color:'#2d6b4a'}},
-      y:{ticks:{color:'#9a8a6a',font:{size:10},callback:v=>'$'+v.toFixed(0)},grid:{color:'#252520'},border:{color:'#2d6b4a'}}
-    }}
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{color:'#E8DCC3',font:{size:10},boxWidth:10,padding:12}}},
+      scales:{
+        x:{ticks:{color:'#9a8a6a',font:{size:9},maxRotation:45},grid:{color:'#1e1e18'},border:{color:'#2d6b4a'}},
+        y:{ticks:{color:'#9a8a6a',font:{size:10},callback:v=>'$'+v.toFixed(0)},grid:{color:'#252520'},border:{color:'#2d6b4a'}}
+      }}
   });
 
-  // Table: Mes / Total / Acumulado
-  let ac=0;
-  const tRows=mKeys.map(k=>{
+  // Monthly table
+  let acum=0;
+  const tRows=allKeys.map(k=>{
     const[y,m]=k.split('-');
-    ac+=mMap[k];
-    return`<tr><td>${MNAMES[parseInt(m)-1]} ${y}</td><td class="td-right">${fmt(mMap[k])}</td><td class="td-right td-accent">${fmt(ac)}</td></tr>`;
+    const eg=mEg[k]||0, ing=mIn[k]||0, dif=ing-eg;
+    acum+=dif;
+    const dc2=dif>=0?'color:#4db87a':'color:#c47a2d';
+    const ac2=acum>=0?'color:#4db87a':'color:#c47a2d';
+    return`<tr>`+
+      `<td>${MNAMES[parseInt(m)-1]}${multiYear?' '+y:''}</td>`+
+      `<td class="td-right" style="color:#4db87a">${fmt(ing)}</td>`+
+      `<td class="td-right" style="color:#c47a2d">${fmt(eg)}</td>`+
+      `<td class="td-right" style="${dc2}">${dif>=0?'+':'-'}${fmt(Math.abs(dif))}</td>`+
+      `<td class="td-right" style="${ac2}">${acum>=0?'+':'-'}${fmt(Math.abs(acum))}</td>`+
+      `</tr>`;
   }).join('');
   document.getElementById('dash-tabla-mensual').innerHTML=
-    `<thead><tr><th>Mes</th><th style="text-align:right">Total</th><th style="text-align:right">Acumulado</th></tr></thead>`+
-    `<tbody>${tRows||'<tr><td colspan="3" style="text-align:center;color:#444;font-style:italic;padding:14px">— sin datos —</td></tr>'}</tbody>`;
+    `<thead><tr><th>Mes</th><th style="text-align:right;color:#4db87a">Ing.</th><th style="text-align:right;color:#c47a2d">Egr.</th><th style="text-align:right">Dif.</th><th style="text-align:right">Acum.</th></tr></thead>`+
+    `<tbody>${tRows||'<tr><td colspan="5" style="text-align:center;color:#444;font-style:italic;padding:14px">— sin datos —</td></tr>'}</tbody>`;
 
-  // Bar chart: by category
+  // Category bar (egresos)
   const cMap={};
-  filtered.forEach(g=>{cMap[g.categoria]=(cMap[g.categoria]||0)+parseFloat(g.monto);});
+  fG.forEach(g=>{cMap[g.categoria]=(cMap[g.categoria]||0)+parseFloat(g.monto);});
   const cSorted=Object.entries(cMap).sort((a,b)=>b[1]-a[1]);
-  const barH=Math.max(180,cSorted.length*32);
-  document.getElementById('chart-bar-cat-wrap').style.height=barH+'px';
+  document.getElementById('chart-bar-cat-wrap').style.height=Math.max(180,cSorted.length*32)+'px';
   if(chartBarCat) chartBarCat.destroy();
   chartBarCat=new Chart(document.getElementById('chart-bar-cat'),{
     type:'bar',
-    data:{
-      labels:cSorted.map(([c])=>c),
-      datasets:[{data:cSorted.map(([,v])=>+v.toFixed(2)),backgroundColor:'rgba(45,107,74,0.82)',borderColor:'#2d6b4a',borderWidth:1,hoverBackgroundColor:'rgba(45,138,82,0.95)'}]
-    },
+    data:{labels:cSorted.map(([c])=>c),datasets:[{data:cSorted.map(([,v])=>+v.toFixed(2)),backgroundColor:'rgba(196,122,45,0.8)',borderColor:'#c47a2d',borderWidth:1,hoverBackgroundColor:'rgba(196,122,45,0.95)'}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},indexAxis:'y',scales:{
       x:{ticks:{color:'#9a8a6a',font:{size:9},callback:v=>'$'+v.toFixed(0)},grid:{color:'#252520'},border:{color:'#2d6b4a'}},
       y:{ticks:{color:'#E8DCC3',font:{size:10}},grid:{color:'#1e1e18'},border:{color:'#2d6b4a'}}
@@ -968,59 +992,73 @@ function renderDashEgresos() {
 function renderDashSemanales() {
   if(!document.getElementById('dash-kpi-semanales')) return;
   const mitad=document.getElementById('dash-filtro-mitad').value;
+  const av=document.getElementById('dash-filtro-anio').value;
 
-  const allG=[...gastosHistorico, ...gastos];
-  const filtered=allG.filter(g=>{
+  const allG=[...gastosHistorico,...gastos];
+  const allI=[...ingresosHistorico,...ingresos];
+
+  const fG=allG.filter(g=>{
     if(g.tipo==='transferencia') return false;
-    if(mitad!=='all'){
-      const m=parseInt(g.fecha.slice(5,7));
-      if(mitad==='H1'&&m>6) return false;
-      if(mitad==='H2'&&m<=6) return false;
-    }
+    if(av!=='all'&&!g.fecha.startsWith(av)) return false;
+    if(mitad!=='all'){const m=parseInt(g.fecha.slice(5,7));if(mitad==='H1'&&m>6)return false;if(mitad==='H2'&&m<=6)return false;}
+    return true;
+  });
+  const fI=allI.filter(g=>{
+    if(av!=='all'&&!g.fecha.startsWith(av)) return false;
+    if(mitad!=='all'){const m=parseInt(g.fecha.slice(5,7));if(mitad==='H1'&&m>6)return false;if(mitad==='H2'&&m<=6)return false;}
     return true;
   });
 
   // Group by ISO week
-  const wMap={}, cwMap={};
-  filtered.forEach(g=>{
-    const d=new Date(g.fecha);
-    const wk=`${d.getFullYear()}-W${String(getISOWeek(d)).padStart(2,'0')}`;
-    wMap[wk]=(wMap[wk]||0)+parseFloat(g.monto);
+  const wG={}, wI={}, cwMap={};
+  fG.forEach(g=>{
+    const d=new Date(g.fecha), wk=`${d.getFullYear()}-W${String(getISOWeek(d)).padStart(2,'0')}`;
+    wG[wk]=(wG[wk]||0)+parseFloat(g.monto);
     if(!cwMap[g.categoria]) cwMap[g.categoria]={};
     cwMap[g.categoria][wk]=(cwMap[g.categoria][wk]||0)+parseFloat(g.monto);
   });
+  fI.forEach(g=>{
+    const d=new Date(g.fecha), wk=`${d.getFullYear()}-W${String(getISOWeek(d)).padStart(2,'0')}`;
+    wI[wk]=(wI[wk]||0)+getInNet(g);
+  });
 
-  const wKeys=Object.keys(wMap).sort();
-  const nWeeks=wKeys.length||1;
-  const totEg=filtered.reduce((s,g)=>s+parseFloat(g.monto),0);
-  const promSem=totEg/nWeeks;
+  const wKeys=[...new Set([...Object.keys(wG),...Object.keys(wI)])].sort();
+  const nW=wKeys.length||1;
+  const totEg=fG.reduce((s,g)=>s+parseFloat(g.monto),0);
+  const totIn=fI.reduce((s,g)=>s+getInNet(g),0);
 
   // KPIs
   document.getElementById('dash-kpi-semanales').innerHTML=
-    `<div class="dash-kpi"><div class="dash-kpi-label">Prom. Semanal</div><div class="dash-kpi-value">${fmt(promSem)}</div></div>`+
-    `<div class="dash-kpi"><div class="dash-kpi-label">Semanas</div><div class="dash-kpi-value">${nWeeks}</div></div>`;
+    `<div class="dash-kpi"><div class="dash-kpi-label">Prom/Sem Egresos</div><div class="dash-kpi-value" style="color:#c47a2d">${fmt(totEg/nW)}</div></div>`+
+    `<div class="dash-kpi"><div class="dash-kpi-label">Prom/Sem Ingresos</div><div class="dash-kpi-value" style="color:#4db87a">${fmt(totIn/nW)}</div></div>`;
 
-  // Line chart: cumulative average
-  let run=0;
-  const cumAvg=wKeys.map((wk,i)=>{run+=wMap[wk];return+(run/(i+1)).toFixed(2);});
+  // Dual cumulative avg chart
+  let rG=0, rI=0;
+  const cumG=wKeys.map((wk,i)=>{rG+=(wG[wk]||0);return+(rG/(i+1)).toFixed(2);});
+  const cumI=wKeys.map((wk,i)=>{rI+=(wI[wk]||0);return+(rI/(i+1)).toFixed(2);});
   if(chartLineSemanal) chartLineSemanal.destroy();
   chartLineSemanal=new Chart(document.getElementById('chart-line-semanal'),{
     type:'line',
     data:{
       labels:wKeys.map(wk=>'S'+wk.split('-W')[1]),
-      datasets:[{data:cumAvg,borderColor:'#4db87a',backgroundColor:'rgba(77,184,122,0.1)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#4db87a',tension:0.3,fill:true}]
+      datasets:[
+        {label:'Ingresos',data:cumI,borderColor:'#4db87a',backgroundColor:'rgba(77,184,122,0.05)',borderWidth:2,pointRadius:2,pointBackgroundColor:'#4db87a',tension:0.3,fill:false},
+        {label:'Egresos', data:cumG,borderColor:'#c47a2d',backgroundColor:'rgba(196,122,45,0.05)',borderWidth:2,pointRadius:2,pointBackgroundColor:'#c47a2d',tension:0.3,fill:false}
+      ]
     },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
-      x:{ticks:{color:'#9a8a6a',font:{size:10}},grid:{color:'#1e1e18'},border:{color:'#2d6b4a'}},
-      y:{ticks:{color:'#9a8a6a',font:{size:10},callback:v=>'$'+v.toFixed(0)},grid:{color:'#252520'},border:{color:'#2d6b4a'}}
-    }}
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{color:'#E8DCC3',font:{size:10},boxWidth:10,padding:12}}},
+      scales:{
+        x:{ticks:{color:'#9a8a6a',font:{size:10}},grid:{color:'#1e1e18'},border:{color:'#2d6b4a'}},
+        y:{ticks:{color:'#9a8a6a',font:{size:10},callback:v=>'$'+v.toFixed(0)},grid:{color:'#252520'},border:{color:'#2d6b4a'}}
+      }}
   });
 
-  // Table: category / weekly avg
+  // Category table
   const cRows=Object.entries(cwMap)
-    .map(([cat,ws])=>{const t=Object.values(ws).reduce((s,v)=>s+v,0);return{cat,avg:t/nWeeks,total:t};})
+    .map(([cat,ws])=>{const t=Object.values(ws).reduce((s,v)=>s+v,0);return{cat,avg:t/nW,total:t};})
     .sort((a,b)=>b.avg-a.avg)
-    .map(r=>`<tr><td>${r.cat}</td><td class="td-right">${fmt(r.avg)}</td><td class="td-right td-accent">${fmt(r.total)}</td></tr>`)
+    .map(r=>`<tr><td>${r.cat}</td><td class="td-right" style="color:#c47a2d">${fmt(r.avg)}</td><td class="td-right td-accent">${fmt(r.total)}</td></tr>`)
     .join('');
   document.getElementById('dash-tabla-semanal').innerHTML=
     `<thead><tr><th>Categoría</th><th style="text-align:right">Prom/Sem</th><th style="text-align:right">Total</th></tr></thead>`+
@@ -1044,7 +1082,7 @@ async function borrarIngreso(localIdx) {
 function showTab(tab) {
   ['cargar','historial','saldo','ingresos','dash'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===tab?'block':'none';});
   document.querySelectorAll('.tab').forEach((btn,i)=>{btn.className='tab'+((['cargar','historial','saldo','ingresos','dash'][i])===tab?' active':'');});
-  if(tab==='dash') showDashTab('egresos');
+  if(tab==='dash') showDashTab('vision');
 }
 </script>
 </body>
