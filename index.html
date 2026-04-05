@@ -406,6 +406,7 @@ let gastos=[], tipoActual='compartido', payerActual='pablo';
 let ingresos=[], ingresosSheetId=null;
 let accessToken='', tokenExpiry=0;
 let gastosSheetId=null;
+let gastosHistorico=[];
 
 // Estado edición
 let editIndex=-1, editTipoActual='compartido', editPayerActual='pablo';
@@ -482,10 +483,14 @@ async function initSheet(token) {
 }
 
 async function loadExistingData(token) {
-  const [gastosRes, ingresosRes] = await Promise.all([
-    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A2:I`,{headers:{Authorization:'Bearer '+token}}),
-    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${INCOME_SHEET_NAME}!A2:I`,{headers:{Authorization:'Bearer '+token}})
+  const h={Authorization:'Bearer '+token};
+  const [gastosRes, ingresosRes, hist24Res, hist25Res] = await Promise.all([
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A2:I`,{headers:h}),
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${INCOME_SHEET_NAME}!A2:I`,{headers:h}),
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Expenses 2024!A2:F`,{headers:h}).catch(()=>null),
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Expenses 2025!A2:F`,{headers:h}).catch(()=>null)
   ]);
+
   const data=await gastosRes.json();
   gastos=(data.values||[]).map((r,i)=>({
     fecha:r[0]||'',
@@ -511,6 +516,19 @@ async function loadExistingData(token) {
     superPct:r[8]||'0',
     rowIndex:i+2
   })).reverse();
+
+  // Cargar años históricos solo para dashboards
+  gastosHistorico=[];
+  for (const [res, year] of [[hist24Res,'2024'],[hist25Res,'2025']]) {
+    if (!res) continue;
+    try {
+      const d=await res.json();
+      (d.values||[]).forEach(r=>{
+        const g={fecha:r[0]||'',monto:parseFloat(r[1])||0,categoria:r[2]||'',subcategoria:r[3]||'',descripcion:r[4]||'',tipo:'pablo',payer:'pablo'};
+        if(g.fecha.startsWith(year)&&g.monto>0) gastosHistorico.push(g);
+      });
+    } catch(e){}
+  }
 
   renderHistorial(); calcularSaldo();
   renderIngresos(); calcularResumenIngresos();
@@ -867,8 +885,10 @@ function getISOWeek(date) {
 function renderDashEgresos() {
   if(!document.getElementById('dash-kpi-egresos')) return;
 
+  const allG=[...gastosHistorico, ...gastos];
+
   // Populate año options dynamically
-  const years=[...new Set(gastos.map(g=>g.fecha.slice(0,4)).filter(Boolean))].sort().reverse();
+  const years=[...new Set(allG.map(g=>g.fecha.slice(0,4)).filter(Boolean))].sort().reverse();
   const aSel=document.getElementById('dash-filtro-anio');
   const curAnio=aSel.value;
   aSel.innerHTML='<option value="all">Todos</option>'+years.map(y=>`<option value="${y}">${y}</option>`).join('');
@@ -877,7 +897,7 @@ function renderDashEgresos() {
   const anio=aSel.value;
   const tipo=document.getElementById('dash-filtro-tipo').value;
 
-  const filtered=gastos.filter(g=>{
+  const filtered=allG.filter(g=>{
     if(g.tipo==='transferencia') return false;
     if(anio!=='all'&&!g.fecha.startsWith(anio)) return false;
     if(tipo!=='all'&&g.tipo!==tipo) return false;
@@ -949,7 +969,8 @@ function renderDashSemanales() {
   if(!document.getElementById('dash-kpi-semanales')) return;
   const mitad=document.getElementById('dash-filtro-mitad').value;
 
-  const filtered=gastos.filter(g=>{
+  const allG=[...gastosHistorico, ...gastos];
+  const filtered=allG.filter(g=>{
     if(g.tipo==='transferencia') return false;
     if(mitad!=='all'){
       const m=parseInt(g.fecha.slice(5,7));
