@@ -559,31 +559,76 @@ async function loadExistingData(token) {
     rowIndex:i+2
   })).reverse();
 
+  // ── Normaliza fechas a YYYY-MM-DD ────────────────────────────────────────────
+  // Acepta: YYYY-MM-DD, DD/MM/YYYY, D/M/YYYY, MM/DD/YYYY, YYYY/MM/DD
+  function normalizeFecha(f) {
+    if (!f) return '';
+    const s = String(f).trim();
+    // Ya está en formato ISO YYYY-MM-DD o YYYY-MM-DDThh:mm:ss
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+    // YYYY/MM/DD
+    if (/^\d{4}\/\d{2}\/\d{2}/.test(s)) return s.slice(0,10).replace(/\//g,'-');
+    // DD/MM/YYYY o D/M/YYYY (formato australiano / europeo)
+    const parts = s.split('/');
+    if (parts.length === 3) {
+      const [a, b, c] = parts;
+      if (c.length === 4) {
+        // a = día, b = mes, c = año (DD/MM/YYYY)
+        return `${c}-${b.padStart(2,'0')}-${a.padStart(2,'0')}`;
+      }
+    }
+    // Formato con guiones D-M-YYYY
+    const dparts = s.split('-');
+    if (dparts.length === 3 && dparts[2].length === 4) {
+      const [a,b,c]=dparts;
+      return `${c}-${b.padStart(2,'0')}-${a.padStart(2,'0')}`;
+    }
+    return s; // devolver tal cual si no se reconoce
+  }
+
   // Históricos solo para dashboards
   gastosHistorico=[];
+  window._diagGastos={};
   for (const [res, year] of [[hE24,'2024'],[hE25,'2025']]) {
-    if(!res) continue;
+    if(!res){console.warn(`[Vagonetas] ${year}: respuesta nula (fetch falló)`);continue;}
     try {
       const d=await res.json();
-      (d.values||[]).forEach(r=>{
-        const g={fecha:r[0]||'',monto:parseFloat(r[1])||0,categoria:r[2]||'',subcategoria:r[3]||'',descripcion:r[4]||'',tipo:'pablo',payer:'pablo'};
-        if(g.fecha.startsWith(year)&&g.monto>0) gastosHistorico.push(g);
+      const rows=d.values||[];
+      window._diagGastos[year]={rawRows:rows.slice(0,3),total:rows.length};
+      console.log(`[Vagonetas] Expenses ${year}: ${rows.length} filas. Primera fila:`, rows[0]);
+      let added=0;
+      rows.forEach(r=>{
+        const fechaRaw=r[0]||'';
+        const fecha=normalizeFecha(fechaRaw);
+        const monto=parseFloat(r[1])||0;
+        const g={fecha,monto,categoria:r[2]||'',subcategoria:r[3]||'',descripcion:r[4]||'',tipo:'pablo',payer:'pablo'};
+        if(fecha.startsWith(year)&&monto>0){gastosHistorico.push(g);added++;}
       });
-    } catch(e){}
+      console.log(`[Vagonetas] Expenses ${year}: ${added} registros cargados en gastosHistorico`);
+    } catch(e){console.error(`[Vagonetas] Error procesando Expenses ${year}:`,e);}
   }
 
   ingresosHistorico=[];
+  window._diagIngresos={};
   for (const [res, year] of [[hI24,'2024'],[hI25,'2025']]) {
-    if(!res) continue;
+    if(!res){console.warn(`[Vagonetas] ${year}: respuesta nula (fetch falló)`);continue;}
     try {
       const d=await res.json();
-      (d.values||[]).forEach(r=>{
+      const rows=d.values||[];
+      window._diagIngresos[year]={rawRows:rows.slice(0,3),total:rows.length};
+      console.log(`[Vagonetas] Incomes ${year}: ${rows.length} filas. Primera fila:`, rows[0]);
+      let added=0;
+      rows.forEach(r=>{
+        const fechaRaw=r[0]||'';
+        const fecha=normalizeFecha(fechaRaw);
         const net=parseFloat(r[4])||parseFloat(r[1])||0;
-        const g={fecha:r[0]||'',gross:parseFloat(r[1])||0,net,category:r[5]||''};
-        if(g.fecha.startsWith(year)&&g.net>0) ingresosHistorico.push(g);
+        const g={fecha,gross:parseFloat(r[1])||0,net,category:r[5]||''};
+        if(fecha.startsWith(year)&&net>0){ingresosHistorico.push(g);added++;}
       });
-    } catch(e){}
+      console.log(`[Vagonetas] Incomes ${year}: ${added} registros cargados en ingresosHistorico`);
+    } catch(e){console.error(`[Vagonetas] Error procesando Incomes ${year}:`,e);}
   }
+  console.log(`[Vagonetas] Total histórico: ${gastosHistorico.length} gastos, ${ingresosHistorico.length} ingresos`);
 
   renderHistorial(); calcularSaldo();
   renderIngresos(); calcularResumenIngresos();
