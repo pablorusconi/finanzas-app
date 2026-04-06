@@ -31,8 +31,8 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 .balance-label { font-size: 11px; color: #2d8a52; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
 .balance-amount { font-family: 'DM Serif Display', Georgia, serif; font-size: 42px; font-weight: 400; color: #E8DCC3; line-height: 1; }
 .balance-sub { font-size: 14px; color: #666; margin-top: 6px; letter-spacing: 1px; font-style: italic; }
-.balance-positive { color: #2d8a52; }
-.balance-negative { color: #8a4a2d; }
+.balance-positive { color: #4ade80; }
+.balance-negative { color: #8a3020; }
 .field { margin-bottom: 14px; }
 .field label { display: block; font-size: 11px; color: #2d8a52; margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; }
 .field input, .field select { width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid #2d6b4a; border-radius: 3px; background: #141412; color: #E8DCC3; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.15s; }
@@ -918,9 +918,9 @@ function renderIngresos() {
         <div class="expense-meta">${g.fecha}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-top:8px;">
           <div><div class="stat-label" style="font-size:9px;">Bruto</div><div style="font-size:13px;color:#E8DCC3;font-family:'DM Serif Display',serif;">${fmt(g.gross)}</div></div>
-          <div><div class="stat-label" style="font-size:9px;">Tax <span style="color:#555;">${taxPct}</span></div><div style="font-size:13px;color:#8a4a2d;font-family:'DM Serif Display',serif;">${fmt(g.tax)}</div></div>
+          <div><div class="stat-label" style="font-size:9px;">Tax <span style="color:#555;">${taxPct}</span></div><div style="font-size:13px;color:#8a3020;font-family:'DM Serif Display',serif;">${fmt(g.tax)}</div></div>
           <div><div class="stat-label" style="font-size:9px;">Super <span style="color:#555;">${superPct}</span></div><div style="font-size:13px;color:#6a9fd8;font-family:'DM Serif Display',serif;">${fmt(g.super)}</div></div>
-          <div><div class="stat-label" style="font-size:9px;">Neto</div><div style="font-size:13px;color:#4db87a;font-family:'DM Serif Display',serif;">${fmt(g.net)}</div></div>
+          <div><div class="stat-label" style="font-size:9px;">Neto</div><div style="font-size:13px;color:#4ade80;font-family:'DM Serif Display',serif;">${fmt(g.net)}</div></div>
         </div>
       </div>
       <div style="text-align:right;flex-shrink:0;margin-left:10px;">
@@ -1014,10 +1014,10 @@ function renderDashVision() {
   const totEg=fG.reduce((s,g)=>s+parseFloat(g.monto),0);
   const totIn=fI.reduce((s,g)=>s+getInNet(g),0);
   const diff=totIn-totEg;
-  const dc=diff>=0?'#4db87a':'#c47a2d';
+  const dc=diff>=0?'#4ade80':'#e07060';
   document.getElementById('dash-kpi-vision').innerHTML=
-    `<div class="dash-kpi"><div class="dash-kpi-label">Ingresos</div><div class="dash-kpi-value" style="color:#4db87a">${fmt(totIn)}</div></div>`+
-    `<div class="dash-kpi"><div class="dash-kpi-label">Egresos</div><div class="dash-kpi-value" style="color:#c47a2d">${fmt(totEg)}</div></div>`+
+    `<div class="dash-kpi"><div class="dash-kpi-label">Ingresos</div><div class="dash-kpi-value" style="color:#4ade80">${fmt(totIn)}</div></div>`+
+    `<div class="dash-kpi"><div class="dash-kpi-label">Egresos</div><div class="dash-kpi-value" style="color:#e07060">${fmt(totEg)}</div></div>`+
     `<div class="dash-kpi"><div class="dash-kpi-label">Diferencia</div><div class="dash-kpi-value" style="color:${dc}">${diff>=0?'+':'-'}${fmt(Math.abs(diff))}</div></div>`;
 
   // Monthly table
@@ -1026,18 +1026,18 @@ function renderDashVision() {
     const[y,m]=k.split('-');
     const eg=mEg[k]||0, ing=mIn[k]||0, dif=ing-eg;
     acum+=dif;
-    const dc2=dif>=0?'color:#4db87a':'color:#c47a2d';
-    const ac2=acum>=0?'color:#4db87a':'color:#c47a2d';
+    const dc2=dif>=0?'color:#4ade80':'color:#e07060';
+    const ac2=acum>=0?'color:#4ade80':'color:#e07060';
     return`<tr>`+
       `<td>${MNAMES[parseInt(m)-1]}${multiYear?' '+y:''}</td>`+
-      `<td class="td-right" style="color:#4db87a">${fmt(ing)}</td>`+
-      `<td class="td-right" style="color:#c47a2d">${fmt(eg)}</td>`+
+      `<td class="td-right" style="color:#4ade80">${fmt(ing)}</td>`+
+      `<td class="td-right" style="color:#e07060">${fmt(eg)}</td>`+
       `<td class="td-right" style="${dc2}">${dif>=0?'+':'-'}${fmt(Math.abs(dif))}</td>`+
       `<td class="td-right" style="${ac2}">${acum>=0?'+':'-'}${fmt(Math.abs(acum))}</td>`+
       `</tr>`;
   }).join('');
   document.getElementById('dash-tabla-mensual').innerHTML=
-    `<thead><tr><th>Mes</th><th style="text-align:right;color:#4db87a">Ing.</th><th style="text-align:right;color:#c47a2d">Egr.</th><th style="text-align:right">Dif.</th><th style="text-align:right">Acum.</th></tr></thead>`+
+    `<thead><tr><th>Mes</th><th style="text-align:right;color:#4ade80">Ing.</th><th style="text-align:right;color:#e07060">Egr.</th><th style="text-align:right">Dif.</th><th style="text-align:right">Acum.</th></tr></thead>`+
     `<tbody>${tRows||'<tr><td colspan="5" style="text-align:center;color:#444;font-style:italic;padding:14px">— sin datos —</td></tr>'}</tbody>`;
 
   // Category bar (egresos)
@@ -1048,7 +1048,7 @@ function renderDashVision() {
   if(chartBarCat) chartBarCat.destroy();
   chartBarCat=new Chart(document.getElementById('chart-bar-cat'),{
     type:'bar',
-    data:{labels:cSorted.map(([c])=>c),datasets:[{data:cSorted.map(([,v])=>+v.toFixed(2)),backgroundColor:'rgba(196,122,45,0.8)',borderColor:'#c47a2d',borderWidth:1,hoverBackgroundColor:'rgba(196,122,45,0.95)'}]},
+    data:{labels:cSorted.map(([c])=>c),datasets:[{data:cSorted.map(([,v])=>+v.toFixed(2)),backgroundColor:'rgba(224,112,96,0.8)',borderColor:'#e07060',borderWidth:1,hoverBackgroundColor:'rgba(224,112,96,0.95)'}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},indexAxis:'y',scales:{
       x:{ticks:{color:'#9a8a6a',font:{size:9},callback:v=>'$'+v.toFixed(0)},grid:{color:'#252520'},border:{color:'#2d6b4a'}},
       y:{ticks:{color:'#E8DCC3',font:{size:10}},grid:{color:'#1e1e18'},border:{color:'#2d6b4a'}}
@@ -1056,14 +1056,14 @@ function renderDashVision() {
   });
 
   // Dual line chart (al fondo): one set of lines per selected year
-  const YR_COLORS={'2024':'#6a9fd8','2025':'#d4b85a','2026':'#4db87a'};
-  const YR_EG_COLORS={'2024':'#8a6ad8','2025':'#d4a020','2026':'#c47a2d'};
+  const YR_COLORS={'2024':'#6a9fd8','2025':'#d4b85a','2026':'#4ade80'};
+  const YR_EG_COLORS={'2024':'#8a6ad8','2025':'#d4a020','2026':'#e07060'};
   const lineDatasets=[];
   years.forEach(yr=>{
     const yrKeys=allKeys.filter(k=>k.startsWith(yr));
     lineDatasets.push(
-      {label:`Ing ${yr}`,data:allKeys.map(k=>k.startsWith(yr)?+((mIn[k]||0).toFixed(2)):null),borderColor:YR_COLORS[yr]||'#4db87a',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.3,fill:false,spanGaps:false},
-      {label:`Egr ${yr}`,data:allKeys.map(k=>k.startsWith(yr)?+((mEg[k]||0).toFixed(2)):null),borderColor:YR_EG_COLORS[yr]||'#c47a2d',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.3,fill:false,spanGaps:false}
+      {label:`Ing ${yr}`,data:allKeys.map(k=>k.startsWith(yr)?+((mIn[k]||0).toFixed(2)):null),borderColor:YR_COLORS[yr]||'#4ade80',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.3,fill:false,spanGaps:false},
+      {label:`Egr ${yr}`,data:allKeys.map(k=>k.startsWith(yr)?+((mEg[k]||0).toFixed(2)):null),borderColor:YR_EG_COLORS[yr]||'#e07060',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.3,fill:false,spanGaps:false}
     );
   });
   if(chartLineMensual) chartLineMensual.destroy();
@@ -1091,8 +1091,8 @@ function renderDashSemanales() {
   const allI=[...ingresosHistorico,...ingresos];
 
   // ── Build per-year data ──────────────────────────────────────────────────────
-  const YR_ING={'2024':'#6a9fd8','2025':'#d4b85a','2026':'#4db87a'};
-  const YR_EG={'2024':'#8a6ad8','2025':'#d4a020','2026':'#c47a2d'};
+  const YR_ING={'2024':'#6a9fd8','2025':'#d4b85a','2026':'#4ade80'};
+  const YR_EG={'2024':'#8a6ad8','2025':'#d4a020','2026':'#e07060'};
   const yearData={};
   years.forEach(yr=>{
     let gY=allG.filter(g=>g.tipo!=='transferencia'&&g.fecha.startsWith(yr));
@@ -1125,11 +1125,11 @@ function renderDashSemanales() {
     const label=multiYear?yr:'';
     kpiHtml+=`<div class="dash-kpi">`+
       `<div class="dash-kpi-label">${label?label+' · ':''}Prom/Sem Egresos</div>`+
-      `<div class="dash-kpi-value" style="color:#c47a2d">${fmt(totEg/nW)}</div>`+
+      `<div class="dash-kpi-value" style="color:#e07060">${fmt(totEg/nW)}</div>`+
       `</div>`;
     kpiHtml+=`<div class="dash-kpi">`+
       `<div class="dash-kpi-label">${label?label+' · ':''}Prom/Sem Ingresos</div>`+
-      `<div class="dash-kpi-value" style="color:#4db87a">${fmt(totIn/nW)}</div>`+
+      `<div class="dash-kpi-value" style="color:#4ade80">${fmt(totIn/nW)}</div>`+
       `</div>`;
   });
   document.getElementById('dash-kpi-semanales').innerHTML=kpiHtml;
@@ -1160,8 +1160,8 @@ function renderDashSemanales() {
     });
     let lastI=null; const cumIf=cumI.map(v=>{if(v!==null)lastI=v;return lastI;});
 
-    lineDatasets.push({label:`Egr ${yr}`,data:cumGf,borderColor:YR_EG[yr]||'#c47a2d',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:0.3,fill:false});
-    lineDatasets.push({label:`Ing ${yr}`,data:cumIf,borderColor:YR_ING[yr]||'#4db87a',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:0.3,fill:false});
+    lineDatasets.push({label:`Egr ${yr}`,data:cumGf,borderColor:YR_EG[yr]||'#e07060',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:0.3,fill:false});
+    lineDatasets.push({label:`Ing ${yr}`,data:cumIf,borderColor:YR_ING[yr]||'#4ade80',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:0.3,fill:false});
   });
 
   if(chartLineSemanal) chartLineSemanal.destroy();
@@ -1189,9 +1189,9 @@ function renderDashSemanales() {
     return{cat,avgs,maxAvg:Math.max(...avgs)};
   }).sort((a,b)=>b.maxAvg-a.maxAvg);
 
-  const thYrs=years.map(y=>`<th style="text-align:right;color:#c47a2d">${y}</th>`).join('');
+  const thYrs=years.map(y=>`<th style="text-align:right;color:#e07060">${y}</th>`).join('');
   const tbody=cRows.map(r=>{
-    const tds=r.avgs.map(v=>`<td class="td-right" style="color:#c47a2d">${fmt(v)}</td>`).join('');
+    const tds=r.avgs.map(v=>`<td class="td-right" style="color:#e07060">${fmt(v)}</td>`).join('');
     return`<tr><td>${r.cat}</td>${tds}</tr>`;
   }).join('');
   const emptyMsg=`<tr><td colspan="${years.length+1}" style="text-align:center;color:#444;font-style:italic;padding:14px">— sin datos —</td></tr>`;
