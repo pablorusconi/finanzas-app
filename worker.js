@@ -7,7 +7,7 @@
 //   GOOGLE_CLIENT_EMAIL → el campo "client_email" del JSON (ej: finanzas-app@app-finanzas-490205.iam.gserviceaccount.com)
 
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': 'https://pablorusconi.github.io',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
