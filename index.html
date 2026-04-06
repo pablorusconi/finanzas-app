@@ -344,43 +344,14 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
 <script>
 const SHEET_ID = '1zvOKdJvDo9kwuPbsXm1o9I5SgNV_R-OxUn7oEmskdIY';
-const CLIENT_EMAIL = 'finanzas-app@app-finanzas-490205.iam.gserviceaccount.com';
+const WORKER_URL = 'https://holy-rice-0ee7.pablorusconi.workers.dev';
 const SHEET_NAME = 'Expenses 2026';
 const HEADERS = ['Date','Amount','Category','Subcategory','Description','Type','Paid_by','Pablo_amount','Julieta_amount'];
 const INCOME_SHEET_NAME = 'Incomes 2026';
 const INCOME_HEADERS = ['Date','Gross','Tax','Super','Net','Category','Description','Tax_pct','Super_pct'];
 const incomeCats = ['Salary','Freelance','Dividends','Investments','Crypto / Stocks','Gift','Prize','Other'];
-const PRIVATE_KEY = `-----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDBnYB8FDsp1wk/
-qx10fxnwWylEn3GNqFGPL9kYfeaqk9c2o/QNaM7V87OFLwMGLnN3uDMkTSjTAIiu
-T0Q0XKFu+uiFI6D+MuXl5bGSmDg1MiNwcOE8tgfa5KLm3PMQExjaDi2+aLvJveFo
-WTCerlbCnQOGXOzfLXl2AxkGg1SDlEbvLHl5l1Oiqpae2ZDc7v3e1ZoZVpDE677K
-pbmbapzUlQ+XrR8lWLs61k4/hTC2zZ1Nv62h5YRyS1NvYnqdOfDeFRT3B7Bjy/6U
-Z7h/rnQ+Uacjl9pPeo3fdxCLdrODlpuqm1jGAFVRDXt5A67zAXGG03UvhX6dYAEa
-0rcM1RclAgMBAAECggEABYwjeQqkWlHKtkwLE0IsBla6UzjFSmOC+LkMfZbn48XK
-IgrnDHZPDNLHdz6uVcBBdzHsJzNdwtPuVp43TE/GIVWnkV8Atx/StfhTkulxHNcT
-rF5Tmcd2aKdp4nb8sN53NRI4bc726HQcD/8UNUu1+SwCBJjHgap+Iys6DZV4N6/c
-Zp/LPgMen9T+Kyweq3my1Mfn9WluKCyS0YcZuFQ/eX2MyG3fOa2USbyZn+onW7Sk
-lSw2qqhmdbUqciIyH/+20wfQDxVGjhY8Dy+vrNatHaxisolTyQPueLat47yRf8Vy
-9FEeBi4GdKeHCeRp76lRwn42Q8k7Iti2+LFjlxt/gQKBgQDoDX+NbzcZkbSLPAxb
-rOswSGURBEpIlirm2LvYPeSVWCgD6JCJ21uW66Qv73SVybn2OXACbcPVtA6lx6UD
-9fpJw0tPahQqY3CWndR8JiAOp6+gFWYyOYShnaKwn8HzZgx2lUGgBZzlHf4Y4q4D
-+49L82txufjz9T3A2cl5HiP4gQKBgQDVmIpHCRDCiuU1DB9WB+qtCnYGOhyZN/Vd
-8mbdQDdbiYK4LsRJRr5Ust7n4TAYVn8UADIbOBN85gd8xeJxWAbcI5jZklvm4pAU
-Oy9+IJbSVbQ2K1T1CIlNEXHcGQrqQ6bhZEcZirNPqNICPpxP2f9DOEVzsiZWFvWG
-PV/GZw/spQKBgQCflHDMRdhBiDb9rVzeSqsueAqwyh9/jW2RdSixC9c/cPGLxopn
-k2eIASLXKDgnriNplZRWxz9unjWYghQUBjuKMHiA83VMtTe/DGkMu3c+PMkFMNIn
-5fA06F/yUNsjVGFrxzbrIhEEazzLxk9fQ8cGty6Ddh4jPtqp3du0pCqegQKBgECO
-ujx+IPKryFsgLthxzBxA7Ss0pTAqGZ8rhKuanSCtjzTb7be4Cg7PgU/UYBT7D62b
-4YkYictWOy0bIjXfxTMED06zTdOa5rE2skQM1Yj9HlrA/gyRZ+5DN4auiv4DNI0r
-IdI2ebu56r+C7Pu1h9FpUJSHY87hYZQROMFepRGBAoGBANq5/v7N7xua0wg9JCav
-0/QDvdnpQv9SqwbQSiju8kpRkcvcjVbUia6tgNfblJl4gdr/tb2RBMEEBDX5k3iu
-EvQ6ljzYHanUilrGrul45vBh33eTC7phkUBhm+0A/I6kie7UXGx5cuRGG240ASDL
-59nc2feX5cLB043NGImSSPUu
------END PRIVATE KEY-----`;
 
 const categorias = {
   "Banking": ["BBVA"],
@@ -483,12 +454,10 @@ function setStatus(connected, text) {
 
 async function getAccessToken() {
   if (accessToken && Date.now()<tokenExpiry) return accessToken;
-  const now=Math.floor(Date.now()/1000);
-  const jwt=KJUR.jws.JWS.sign('RS256',JSON.stringify({alg:'RS256',typ:'JWT'}),JSON.stringify({iss:CLIENT_EMAIL,scope:'https://www.googleapis.com/auth/spreadsheets',aud:'https://oauth2.googleapis.com/token',exp:now+3600,iat:now}),PRIVATE_KEY);
-  const res=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`});
+  const res=await fetch(WORKER_URL,{method:'POST'});
   const data=await res.json();
   if (!data.access_token) throw new Error('Token error: '+JSON.stringify(data));
-  accessToken=data.access_token; tokenExpiry=Date.now()+(data.expires_in-60)*1000;
+  accessToken=data.access_token; tokenExpiry=Date.now()+3540000;
   return accessToken;
 }
 
