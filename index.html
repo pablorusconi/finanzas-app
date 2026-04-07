@@ -281,6 +281,10 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
           <div style="position:relative;height:200px;"><canvas id="chart-line-semanal"></canvas></div>
         </div>
         <div class="chart-card">
+          <div class="chart-title">Ingresos y egresos por semana</div>
+          <div style="position:relative;height:200px;"><canvas id="chart-bar-semanal"></canvas></div>
+        </div>
+        <div class="chart-card">
           <div class="chart-title">Promedio semanal egresos por categoría</div>
           <table class="dash-table" id="dash-tabla-semanal"></table>
         </div>
@@ -956,7 +960,7 @@ async function agregarIngreso() {
 
 // ─── DASHBOARDS ─────────────────────────────────────────────────────────────────
 
-let chartLineMensual=null, chartBarCat=null, chartLineSemanal=null;
+let chartLineMensual=null, chartBarCat=null, chartLineSemanal=null, chartBarSemanal=null;
 const MNAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
 function showDashTab(tab) {
@@ -1166,6 +1170,41 @@ function renderDashSemanales() {
       plugins:{legend:{display:true,labels:{color:'#E8DCC3',font:{size:9},boxWidth:8,padding:8}}},
       scales:{
         x:{ticks:{color:'#9a8a6a',font:{size:9}},grid:{color:'#1e1e18'},border:{color:'#2d6b4a'}},
+        y:{ticks:{color:'#9a8a6a',font:{size:9},callback:v=>'$'+v.toFixed(0)},grid:{color:'#252520'},border:{color:'#2d6b4a'}}
+      }}
+  });
+
+  // ── Bar chart: week-by-week income and expenses ───────────────────────────
+  const barDatasets=[];
+  years.forEach(yr=>{
+    const{wG,wI}=yearData[yr];
+    barDatasets.push({
+      label:`Egr ${yr}`,
+      data:wNums.map(wn=>{const wk=`${yr}-W${String(wn).padStart(2,'0')}`;return wG[wk]!==undefined?+wG[wk].toFixed(2):null;}),
+      backgroundColor:YR_EG[yr]||'#e07060',
+      borderColor:'transparent',
+      borderWidth:0,
+      borderRadius:2,
+      skipNull:true
+    });
+    barDatasets.push({
+      label:`Ing ${yr}`,
+      data:wNums.map(wn=>{const wk=`${yr}-W${String(wn).padStart(2,'0')}`;return wI[wk]!==undefined?+wI[wk].toFixed(2):null;}),
+      backgroundColor:YR_ING[yr]||'#4ade80',
+      borderColor:'transparent',
+      borderWidth:0,
+      borderRadius:2,
+      skipNull:true
+    });
+  });
+  if(chartBarSemanal) chartBarSemanal.destroy();
+  chartBarSemanal=new Chart(document.getElementById('chart-bar-semanal'),{
+    type:'bar',
+    data:{labels:wNums.map(n=>'S'+n),datasets:barDatasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{color:'#E8DCC3',font:{size:9},boxWidth:8,padding:8}}},
+      scales:{
+        x:{ticks:{color:'#9a8a6a',font:{size:9},maxRotation:0},grid:{color:'#1e1e18'},border:{color:'#2d6b4a'}},
         y:{ticks:{color:'#9a8a6a',font:{size:9},callback:v=>'$'+v.toFixed(0)},grid:{color:'#252520'},border:{color:'#2d6b4a'}}
       }}
   });
