@@ -529,6 +529,7 @@ async function loadExistingData(token) {
   gastos=(data.values||[]).map((r,i)=>({
     fecha:r[0]||'',
     monto:parseFloat(r[1])||0,
+    pablo_amount:parseFloat(r[7])||0,
     categoria:r[2]||'',
     subcategoria:r[3]||'',
     descripcion:r[4]||'',
@@ -712,7 +713,7 @@ async function agregarGasto() {
   } catch(e){showToast('error: '+e.message,true);btn.disabled=false;btn.textContent='registrar gasto';return;}
   // El nuevo gasto va al final del sheet, rowIndex = gastos.length + 2
   const newRowIndex=gastos.length+2;
-  gastos.unshift({fecha,monto,categoria,subcategoria,descripcion,tipo:tipoActual,payer:payerActual,rowIndex:newRowIndex});
+  gastos.unshift({fecha,monto,pablo_amount:pA,categoria,subcategoria,descripcion,tipo:tipoActual,payer:payerActual,rowIndex:newRowIndex});
   calcularSaldo(); renderHistorial();
   document.getElementById('monto').value='';
   document.getElementById('descripcion').value='';
@@ -868,7 +869,7 @@ async function guardarEdicion() {
     );
     if(!resPut.ok){const errData=await resPut.json().catch(()=>({}));throw new Error(errData.error?.message||'Error HTTP '+resPut.status);}
     // Actualizar array local
-    gastos[editIndex]={fecha,monto,categoria,subcategoria,descripcion,tipo:editTipoActual,payer:editPayerActual,rowIndex};
+    gastos[editIndex]={fecha,monto,pablo_amount:pA,categoria,subcategoria,descripcion,tipo:editTipoActual,payer:editPayerActual,rowIndex};
     calcularSaldo(); renderHistorial();
     cerrarEdicion();
     showToast('actualizado en Google Sheets ✓');
@@ -994,17 +995,17 @@ function renderDashVision() {
   const multiYear=years.length>1;
 
   // Filter by selected years (combined)
-  const fG=allG.filter(g=>g.tipo!=='transferencia'&&years.some(y=>g.fecha.startsWith(y)));
+  const fG=allG.filter(g=>g.tipo!=='transferencia'&&g.tipo!=='julieta'&&years.some(y=>g.fecha.startsWith(y)));
   const fI=allI.filter(g=>years.some(y=>g.fecha.startsWith(y)));
 
   // Monthly aggregation
   const mEg={}, mIn={};
-  fG.forEach(g=>{ const k=g.fecha.slice(0,7); mEg[k]=(mEg[k]||0)+parseFloat(g.monto); });
+  fG.forEach(g=>{ const k=g.fecha.slice(0,7); mEg[k]=(mEg[k]||0)+(g.pablo_amount??parseFloat(g.monto)); });
   fI.forEach(g=>{ const k=g.fecha.slice(0,7); mIn[k]=(mIn[k]||0)+getInNet(g); });
   const allKeys=[...new Set([...Object.keys(mEg),...Object.keys(mIn)])].sort();
 
   // KPIs
-  const totEg=fG.reduce((s,g)=>s+parseFloat(g.monto),0);
+  const totEg=fG.reduce((s,g)=>s+(g.pablo_amount??parseFloat(g.monto)),0);
   const totIn=fI.reduce((s,g)=>s+getInNet(g),0);
   const diff=totIn-totEg;
   const dc=diff>=0?'#4ade80':'#e07060';
@@ -1035,7 +1036,7 @@ function renderDashVision() {
 
   // Category bar (egresos)
   const cMap={};
-  fG.forEach(g=>{cMap[g.categoria]=(cMap[g.categoria]||0)+parseFloat(g.monto);});
+  fG.forEach(g=>{cMap[g.categoria]=(cMap[g.categoria]||0)+(g.pablo_amount??parseFloat(g.monto));});
   const cSorted=Object.entries(cMap).sort((a,b)=>b[1]-a[1]);
   document.getElementById('chart-bar-cat-wrap').style.height=Math.max(180,cSorted.length*32)+'px';
   if(chartBarCat) chartBarCat.destroy();
@@ -1088,7 +1089,7 @@ function renderDashSemanales() {
   const YR_EG={'2024':'#8a6ad8','2025':'#d4a020','2026':'#e07060'};
   const yearData={};
   years.forEach(yr=>{
-    let gY=allG.filter(g=>g.tipo!=='transferencia'&&g.fecha.startsWith(yr));
+    let gY=allG.filter(g=>g.tipo!=='transferencia'&&g.tipo!=='julieta'&&g.fecha.startsWith(yr));
     let iY=allI.filter(g=>g.fecha.startsWith(yr));
     gY=filterByPeriod(gY,period);
     iY=filterByPeriod(iY,period);
@@ -1096,9 +1097,9 @@ function renderDashSemanales() {
     const wG={},wI={},cwMap={};
     gY.forEach(g=>{
       const d=new Date(g.fecha),wk=`${d.getFullYear()}-W${String(getISOWeek(d)).padStart(2,'0')}`;
-      wG[wk]=(wG[wk]||0)+parseFloat(g.monto);
+      wG[wk]=(wG[wk]||0)+(g.pablo_amount??parseFloat(g.monto));
       if(!cwMap[g.categoria])cwMap[g.categoria]={};
-      cwMap[g.categoria][wk]=(cwMap[g.categoria][wk]||0)+parseFloat(g.monto);
+      cwMap[g.categoria][wk]=(cwMap[g.categoria][wk]||0)+(g.pablo_amount??parseFloat(g.monto));
     });
     iY.forEach(g=>{
       const d=new Date(g.fecha),wk=`${d.getFullYear()}-W${String(getISOWeek(d)).padStart(2,'0')}`;
@@ -1106,7 +1107,7 @@ function renderDashSemanales() {
     });
     const wKeys=[...new Set([...Object.keys(wG),...Object.keys(wI)])].sort();
     const nW=wKeys.length||1;
-    const totEg=gY.reduce((s,g)=>s+parseFloat(g.monto),0);
+    const totEg=gY.reduce((s,g)=>s+(g.pablo_amount??parseFloat(g.monto)),0);
     const totIn=iY.reduce((s,g)=>s+getInNet(g),0);
     yearData[yr]={wG,wI,wKeys,nW,totEg,totIn,cwMap};
   });
