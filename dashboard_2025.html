@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vagonetas — Expenses 2025</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap');
+
+    :root {
+      --bg:       #0d0d0d;
+      --card:     #161616;
+      --card2:    #1e1e1e;
+      --border:   #2a2a2a;
+      --green:    #5a8a3a;
+      --green-lt: #7db356;
+      --green-dim:#2e4a1e;
+      --cream:    #e8d5b0;
+      --cream-dim:#9a8868;
+      --red:      #c0392b;
+      --gap:      16px;
+      --radius:   8px;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--cream);
+      min-height: 100vh;
+    }
+
+    /* ── LOADING ── */
+    #loading {
+      position: fixed; inset:0;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 999;
+      gap: 16px;
+    }
+    #loading h2 { font-family:'DM Serif Display',serif; font-size:24px; color:var(--cream); }
+    .spinner {
+      width:40px; height:40px;
+      border:3px solid var(--border);
+      border-top-color: var(--green-lt);
+      border-radius:50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── ERROR ── */
+    #error-banner {
+      display:none;
+      background:#2a1010; border:1px solid #5a2020;
+      color:#f08080; padding:16px 24px;
+      border-radius:var(--radius); margin:24px;
+      font-size:14px; line-height:1.6;
+    }
+
+    /* ── CONTAINER ── */
+    .container { max-width:1300px; margin:0 auto; padding:var(--gap); }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 28px;
+      margin-bottom: var(--gap);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .header-left h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px;
+      color: var(--cream);
+      letter-spacing: 0.5px;
+    }
+    .header-left p {
+      font-size: 12px;
+      color: var(--cream-dim);
+      margin-top: 3px;
+    }
+    .dot { color: var(--green-lt); margin: 0 6px; }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filter-group { display:flex; flex-direction:column; gap:3px; }
+    .filter-group label { font-size:10px; color:var(--cream-dim); text-transform:uppercase; letter-spacing:0.6px; }
+    select {
+      background: var(--card2);
+      color: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      outline: none;
+    }
+    select:focus { border-color: var(--green); }
+    select option { background: var(--card2); }
+
+    .btn-reset {
+      background: var(--green-dim);
+      color: var(--green-lt);
+      border: 1px solid var(--green);
+      border-radius: 5px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      align-self: flex-end;
+      transition: background 0.15s;
+    }
+    .btn-reset:hover { background: var(--green); color: var(--bg); }
+
+    /* ── KPI ROW ── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--gap);
+      margin-bottom: var(--gap);
+    }
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::before {
+      content:'';
+      position:absolute; top:0; left:0; right:0; height:3px;
+      background: var(--green);
+    }
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--cream-dim);
+      margin-bottom: 8px;
+    }
+    .kpi-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 30px;
+      color: var(--cream);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .kpi-sub {
+      font-size: 12px;
+      color: var(--cream-dim);
+    }
+    .kpi-highlight { color: var(--green-lt); }
+
+    /* ── CHARTS ROW ── */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: var(--gap);
+      margin-bottom: var(--gap);
+    }
+    .charts-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--gap);
+      margin-bottom: var(--gap);
+    }
+    .chart-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+    }
+    .chart-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 15px;
+      color: var(--cream);
+      margin-bottom: 16px;
+      letter-spacing: 0.3px;
+    }
+    .chart-card canvas { max-height: 280px; }
+
+    /* ── TABLE ── */
+    .table-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      margin-bottom: var(--gap);
+      overflow-x: auto;
+    }
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .table-count {
+      font-size: 12px;
+      color: var(--cream-dim);
+    }
+    .table-count span { color: var(--cream); font-weight: 600; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead th {
+      text-align: left;
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--cream-dim);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    thead th:hover { color: var(--cream); }
+    tbody td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #1c1c1c;
+      color: var(--cream);
+    }
+    tbody tr:hover td { background: var(--card2); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .badge-normal   { background:#1a2e10; color:#7db356; border:1px solid #2e4a1e; }
+    .badge-ext      { background:#2e1a0a; color:#d4834a; border:1px solid #4a2e10; }
+
+    .amount-cell { font-family: monospace; font-size: 13px; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 12px;
+      font-size: 11px;
+      color: var(--cream-dim);
+      margin-bottom: 8px;
+    }
+    footer a { color: var(--green-lt); text-decoration: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .kpi-row { grid-template-columns: repeat(2,1fr); }
+      .charts-row { grid-template-columns: 1fr; }
+      .charts-row-2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 500px) {
+      .kpi-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <h2>Cargando datos…</h2>
+</div>
+
+<!-- Upload screen shown when auto-load fails -->
+<div id="upload-screen" style="display:none; position:fixed; inset:0; background:var(--bg); display:none; flex-direction:column; align-items:center; justify-content:center; gap:24px; z-index:998;">
+  <h2 style="font-family:'DM Serif Display',serif; font-size:28px; color:var(--cream)">Vagonetas <span style="color:var(--green-lt)">·</span> Expenses 2025</h2>
+  <p style="color:var(--cream-dim); font-size:14px; text-align:center; max-width:400px; line-height:1.7">
+    No se pudo cargar desde Google Sheets.<br>
+    Exportá la hoja como CSV y seleccionála acá.
+  </p>
+  <div style="background:var(--card); border:2px dashed var(--border); border-radius:12px; padding:40px 60px; text-align:center; cursor:pointer; transition:border-color 0.2s"
+       id="drop-zone"
+       ondragover="event.preventDefault(); this.style.borderColor='var(--green)'"
+       ondragleave="this.style.borderColor='var(--border)'"
+       ondrop="handleDrop(event)">
+    <div style="font-size:36px; margin-bottom:12px">📂</div>
+    <div style="color:var(--cream); font-size:15px; margin-bottom:8px">Arrastrá el CSV acá</div>
+    <div style="color:var(--cream-dim); font-size:12px; margin-bottom:20px">o hacé click para seleccionar</div>
+    <label style="background:var(--green-dim); color:var(--green-lt); border:1px solid var(--green); border-radius:6px; padding:10px 22px; font-size:13px; cursor:pointer; font-family:'DM Sans',sans-serif">
+      Seleccionar archivo CSV
+      <input type="file" accept=".csv" style="display:none" onchange="handleFileInput(this)">
+    </label>
+  </div>
+  <p style="color:var(--cream-dim); font-size:12px; text-align:center; line-height:1.8">
+    En Google Sheets: <strong style="color:var(--cream)">Archivo → Descargar → CSV</strong>
+  </p>
+</div>
+
+<div id="error-banner"></div>
+
+<div class="container" id="app" style="display:none">
+
+  <header>
+    <div class="header-left">
+      <h1>Vagonetas <span class="dot">·</span> Expenses 2025</h1>
+      <p id="header-sub">Cargando…</p>
+    </div>
+    <div class="filters">
+      <div class="filter-group">
+        <label>Categoría</label>
+        <select id="filter-cat" onchange="applyFilters()"><option value="">Todas</option></select>
+      </div>
+      <div class="filter-group">
+        <label>Frecuencia</label>
+        <select id="filter-freq" onchange="applyFilters()">
+          <option value="">Todas</option>
+          <option value="Normal">Normal</option>
+          <option value="Extraordinario">Extraordinario</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Mes</label>
+        <select id="filter-month" onchange="applyFilters()"><option value="">Todos</option></select>
+      </div>
+      <button class="btn-reset" onclick="resetFilters()">↺ Reset</button>
+    </div>
+  </header>
+
+  <section class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">Total Gastos</div>
+      <div class="kpi-value" id="kpi-total">—</div>
+      <div class="kpi-sub" id="kpi-total-sub">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Promedio Mensual</div>
+      <div class="kpi-value" id="kpi-avg">—</div>
+      <div class="kpi-sub" id="kpi-avg-sub">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Categoría Top</div>
+      <div class="kpi-value" id="kpi-topcat" style="font-size:20px;padding-top:4px">—</div>
+      <div class="kpi-sub" id="kpi-topcat-sub">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Transacciones</div>
+      <div class="kpi-value" id="kpi-count">—</div>
+      <div class="kpi-sub" id="kpi-count-sub">—</div>
+    </div>
+  </section>
+
+  <section class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Gastos por Mes</div>
+      <canvas id="chart-monthly"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Por Categoría</div>
+      <canvas id="chart-cat"></canvas>
+    </div>
+  </section>
+
+  <section class="charts-row-2">
+    <div class="chart-card">
+      <div class="chart-title">Acumulado del Año</div>
+      <canvas id="chart-acum"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Normal vs Extraordinario</div>
+      <canvas id="chart-freq"></canvas>
+    </div>
+  </section>
+
+  <div class="table-card">
+    <div class="table-header">
+      <div class="chart-title" style="margin:0">Detalle de Transacciones</div>
+      <div class="table-count">Mostrando <span id="row-count">0</span> transacciones · Total <span id="row-total">$0</span></div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortBy('date')">Fecha <span id="sort-date"></span></th>
+          <th onclick="sortBy('category')">Categoría <span id="sort-category"></span></th>
+          <th onclick="sortBy('subcategory')">Subcategoría <span id="sort-subcategory"></span></th>
+          <th onclick="sortBy('description')">Descripción <span id="sort-description"></span></th>
+          <th onclick="sortBy('amount')" style="text-align:right">Monto <span id="sort-amount"></span></th>
+          <th onclick="sortBy('frecuencia')">Frecuencia <span id="sort-frecuencia"></span></th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    Datos cargados en tiempo real desde <a href="https://pablorusconi.github.io/finanzas-app/" target="_blank">Vagonetas</a>
+    <span id="last-updated"></span>
+  </footer>
+
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const SHEET_ID  = '1zvOKdJvDo9kwuPbsXm1o9I5SgNV_R-OxUn7oEmskdIY';
+const SHEET_GID = '315856123';
+const GVIZ_URL  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:__onSheetData&gid=${SHEET_GID}`;
+
+const MONTH_NAMES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const COLORS = ['#5a8a3a','#7db356','#4a7a2a','#9acc6e','#3a6020','#bae098','#2a4a14','#d4f0a8','#c07a30','#e09a50'];
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let allData = [];
+let filtered = [];
+let sortCol = 'date';
+let sortDir = 'desc';
+let charts = {};
+
+// ── PARSE CSV ────────────────────────────────────────────────────────────────
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase());
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const vals = splitCSVLine(lines[i]);
+    if (vals.length < 2) continue;
+    const row = {};
+    headers.forEach((h, j) => row[h] = (vals[j]||'').trim().replace(/^"|"$/g,''));
+    // Normalize columns
+    row.date        = row['date'] || '';
+    // Si existe pablo_amount (gastos desde la app), usarlo en lugar del amount total
+    // Así los gastos compartidos muestran solo la mitad de Pablo, no el total
+    const pabloAmt = parseFloat(row['pablo_amount']);
+    row.amount      = (pabloAmt > 0) ? pabloAmt : (parseFloat(row['amount']) || 0);
+    row.category    = row['category'] || '';
+    row.subcategory = row['subcategory'] || '';
+    row.description = row['description'] || '';
+    // Frecuencia can be in "tipo", "frecuencia", or "type" column
+    row.frecuencia  = row['frecuencia'] || row['tipo'] || row['type'] || 'Normal';
+    if (!row.frecuencia || row.frecuencia === '') row.frecuencia = 'Normal';
+    // Excluir gastos exclusivos de Julieta
+    const expType = (row['type'] || '').toLowerCase();
+    if (expType === 'julieta') continue;
+    if (row.date && row.amount > 0) rows.push(row);
+  }
+  return rows;
+}
+
+function splitCSVLine(line) {
+  const result = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    if (line[i] === '"') { inQ = !inQ; }
+    else if (line[i] === ',' && !inQ) { result.push(cur); cur = ''; }
+    else { cur += line[i]; }
+  }
+  result.push(cur);
+  return result;
+}
+
+// ── FORMAT ───────────────────────────────────────────────────────────────────
+function fmtAUD(n) {
+  if (n >= 1000) return '$' + (n/1000).toFixed(1) + 'k';
+  return '$' + n.toFixed(0);
+}
+function fmtAUDFull(n) {
+  return '$' + n.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function fmtDate(d) {
+  if (!d) return '';
+  const parts = d.split(/[-/]/);
+  if (parts.length < 3) return d;
+  // Try YYYY-MM-DD or DD/MM/YYYY
+  let y, m, day;
+  if (parts[0].length === 4) { [y,m,day] = parts; }
+  else { [day,m,y] = parts; }
+  return `${day.padStart(2,'0')}/${m.padStart(2,'0')}/${y}`;
+}
+function getMonth(d) {
+  if (!d) return null;
+  const parts = d.split(/[-/]/);
+  if (parts.length < 3) return null;
+  let y, m;
+  if (parts[0].length === 4) { y = parts[0]; m = parts[1]; }
+  else { m = parts[1]; y = parts[2]; }
+  return { y: parseInt(y), m: parseInt(m), key: `${y}-${m.padStart(2,'0')}`, label: MONTH_NAMES[parseInt(m)-1] };
+}
+
+// ── FILTERS ──────────────────────────────────────────────────────────────────
+function populateFilters() {
+  const cats = [...new Set(allData.map(r => r.category).filter(Boolean))].sort();
+  const sel = document.getElementById('filter-cat');
+  cats.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+
+  const months = [...new Set(allData.map(r => getMonth(r.date)).filter(Boolean).map(m => m.key))].sort();
+  const selM = document.getElementById('filter-month');
+  months.forEach(key => {
+    const m = getMonth(key + '-01');
+    const o = document.createElement('option'); o.value = key; o.textContent = m ? m.label + ' ' + key.split('-')[0] : key;
+    selM.appendChild(o);
+  });
+}
+
+function applyFilters() {
+  const cat   = document.getElementById('filter-cat').value;
+  const freq  = document.getElementById('filter-freq').value;
+  const month = document.getElementById('filter-month').value;
+  filtered = allData.filter(r => {
+    if (cat   && r.category   !== cat)  return false;
+    if (freq  && r.frecuencia !== freq) return false;
+    if (month) {
+      const m = getMonth(r.date);
+      if (!m || m.key !== month) return false;
+    }
+    return true;
+  });
+  render();
+}
+
+function resetFilters() {
+  document.getElementById('filter-cat').value   = '';
+  document.getElementById('filter-freq').value  = '';
+  document.getElementById('filter-month').value = '';
+  filtered = [...allData];
+  render();
+}
+
+// ── SORT ─────────────────────────────────────────────────────────────────────
+function sortBy(col) {
+  if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortCol = col; sortDir = col === 'amount' ? 'desc' : 'asc'; }
+  ['date','category','subcategory','description','amount','frecuencia'].forEach(c => {
+    document.getElementById('sort-' + c).textContent = '';
+  });
+  document.getElementById('sort-' + col).textContent = sortDir === 'asc' ? ' ▲' : ' ▼';
+  renderTable();
+}
+
+// ── KPIs ─────────────────────────────────────────────────────────────────────
+function renderKPIs() {
+  const total = filtered.reduce((s,r) => s + r.amount, 0);
+  document.getElementById('kpi-total').textContent = fmtAUD(total);
+  document.getElementById('kpi-total-sub').innerHTML = `<span class="kpi-highlight">${fmtAUDFull(total)}</span>`;
+
+  const months = new Set(filtered.map(r => getMonth(r.date)?.key).filter(Boolean));
+  const nMonths = Math.max(months.size, 1);
+  const avg = total / nMonths;
+  document.getElementById('kpi-avg').textContent = fmtAUD(avg);
+  document.getElementById('kpi-avg-sub').textContent = `sobre ${nMonths} ${nMonths === 1 ? 'mes' : 'meses'}`;
+
+  const byCategory = {};
+  filtered.forEach(r => { byCategory[r.category] = (byCategory[r.category]||0) + r.amount; });
+  const topCat = Object.entries(byCategory).sort((a,b)=>b[1]-a[1])[0];
+  if (topCat) {
+    document.getElementById('kpi-topcat').textContent = topCat[0];
+    const pct = ((topCat[1]/total)*100).toFixed(1);
+    document.getElementById('kpi-topcat-sub').textContent = `${fmtAUD(topCat[1])} · ${pct}% del total`;
+  }
+
+  document.getElementById('kpi-count').textContent = filtered.length.toLocaleString();
+  const ext = filtered.filter(r => r.frecuencia === 'Extraordinario').length;
+  document.getElementById('kpi-count-sub').textContent = ext > 0 ? `${ext} extraordinario${ext>1?'s':''}` : 'todas normales';
+}
+
+// ── CHARTS ───────────────────────────────────────────────────────────────────
+function renderCharts() {
+  const byMonth = {};
+  filtered.forEach(r => {
+    const m = getMonth(r.date);
+    if (!m) return;
+    byMonth[m.key] = (byMonth[m.key]||0) + r.amount;
+  });
+  const monthKeys = Object.keys(byMonth).sort();
+  const monthLabels = monthKeys.map(k => { const m = getMonth(k+'-01'); return m ? m.label : k; });
+  const monthVals = monthKeys.map(k => byMonth[k]);
+
+  // Monthly bar
+  if (charts.monthly) charts.monthly.destroy();
+  charts.monthly = new Chart(document.getElementById('chart-monthly').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: monthLabels,
+      datasets: [{
+        label: 'Gastos AUD',
+        data: monthVals,
+        backgroundColor: COLORS[0] + 'cc',
+        borderColor: COLORS[1],
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + fmtAUDFull(ctx.parsed.y) } }
+      },
+      scales: {
+        x: { grid: { color: '#1f1f1f' }, ticks: { color: '#9a8868' } },
+        y: { grid: { color: '#1f1f1f' }, ticks: { color: '#9a8868', callback: v => fmtAUD(v) }, beginAtZero: true }
+      }
+    }
+  });
+
+  // Category doughnut
+  const byCat = {};
+  filtered.forEach(r => { byCat[r.category] = (byCat[r.category]||0) + r.amount; });
+  const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const catLabels = catEntries.map(e=>e[0]);
+  const catVals   = catEntries.map(e=>e[1]);
+  const total = catVals.reduce((s,v)=>s+v,0);
+
+  if (charts.cat) charts.cat.destroy();
+  charts.cat = new Chart(document.getElementById('chart-cat').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: catLabels,
+      datasets: [{ data: catVals, backgroundColor: COLORS.map(c=>c+'cc'), borderColor: '#0d0d0d', borderWidth: 2 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: {
+        legend: { position:'bottom', labels:{ color:'#9a8868', font:{size:11}, padding:10, usePointStyle:true }},
+        tooltip: { callbacks: { label: ctx => ` ${fmtAUDFull(ctx.parsed)} (${((ctx.parsed/total)*100).toFixed(1)}%)` } }
+      }
+    }
+  });
+
+  // Acumulado line
+  let acum = 0;
+  const acumLabels = monthKeys.map(k => { const m = getMonth(k+'-01'); return m ? m.label : k; });
+  const acumVals = monthKeys.map(k => { acum += byMonth[k]; return acum; });
+
+  if (charts.acum) charts.acum.destroy();
+  charts.acum = new Chart(document.getElementById('chart-acum').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: acumLabels,
+      datasets: [{
+        label: 'Acumulado AUD',
+        data: acumVals,
+        borderColor: COLORS[1],
+        backgroundColor: COLORS[0] + '30',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 4,
+        pointBackgroundColor: COLORS[1],
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + fmtAUDFull(ctx.parsed.y) } }
+      },
+      scales: {
+        x: { grid: { color: '#1f1f1f' }, ticks: { color: '#9a8868' } },
+        y: { grid: { color: '#1f1f1f' }, ticks: { color: '#9a8868', callback: v => fmtAUD(v) }, beginAtZero: true }
+      }
+    }
+  });
+
+  // Frecuencia doughnut
+  const normalTotal = filtered.filter(r=>r.frecuencia!=='Extraordinario').reduce((s,r)=>s+r.amount,0);
+  const extTotal    = filtered.filter(r=>r.frecuencia==='Extraordinario').reduce((s,r)=>s+r.amount,0);
+
+  if (charts.freq) charts.freq.destroy();
+  charts.freq = new Chart(document.getElementById('chart-freq').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Normal','Extraordinario'],
+      datasets: [{ data: [normalTotal, extTotal], backgroundColor: ['#5a8a3acc','#c07a30cc'], borderColor:'#0d0d0d', borderWidth:2 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: {
+        legend: { position:'bottom', labels:{ color:'#9a8868', font:{size:11}, padding:12, usePointStyle:true }},
+        tooltip: { callbacks: { label: ctx => ` ${fmtAUDFull(ctx.parsed)} (${((ctx.parsed/(normalTotal+extTotal))*100).toFixed(1)}%)` } }
+      }
+    }
+  });
+}
+
+// ── TABLE ────────────────────────────────────────────────────────────────────
+function renderTable() {
+  const sorted = [...filtered].sort((a, b) => {
+    let av = a[sortCol], bv = b[sortCol];
+    if (sortCol === 'amount') { av = +av; bv = +bv; }
+    const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
+
+  const total = filtered.reduce((s,r)=>s+r.amount,0);
+  document.getElementById('row-count').textContent = filtered.length.toLocaleString();
+  document.getElementById('row-total').textContent = fmtAUDFull(total);
+
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = sorted.slice(0, 200).map(r => `
+    <tr>
+      <td>${fmtDate(r.date)}</td>
+      <td>${r.category}</td>
+      <td style="color:var(--cream-dim)">${r.subcategory}</td>
+      <td style="color:var(--cream-dim)">${r.description}</td>
+      <td class="amount-cell" style="text-align:right">${fmtAUDFull(r.amount)}</td>
+      <td><span class="badge ${r.frecuencia==='Extraordinario'?'badge-ext':'badge-normal'}">${r.frecuencia}</span></td>
+    </tr>
+  `).join('');
+  if (sorted.length > 200) {
+    tbody.innerHTML += `<tr><td colspan="6" style="text-align:center;color:var(--cream-dim);padding:12px">
+      Mostrando primeras 200 de ${sorted.length} filas. Usá los filtros para acotar la vista.
+    </td></tr>`;
+  }
+}
+
+// ── RENDER ALL ───────────────────────────────────────────────────────────────
+function render() {
+  renderKPIs();
+  renderCharts();
+  renderTable();
+}
+
+// ── LOAD DATA via JSONP (works desde file://) ─────────────────────────────────
+function parseGvizResponse(raw) {
+  // Strip the JSONP wrapper: /*O_o*/\n__onSheetData({...})
+  const jsonStr = raw.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, '');
+  return JSON.parse(jsonStr);
+}
+
+window.__onSheetData = function(data) {
+  try {
+    const table = data.table;
+    if (!table || !table.rows || table.rows.length === 0) throw new Error('La hoja está vacía.');
+
+    const cols = table.cols.map(c => c.label.trim().toLowerCase());
+
+    allData = table.rows.map(row => {
+      const obj = {};
+      row.c.forEach((cell, i) => {
+        const key = cols[i];
+        let val = cell ? (cell.v !== null && cell.v !== undefined ? cell.v : (cell.f || '')) : '';
+        // gviz devuelve fechas como "Date(2025,0,15)" — convertir a string YYYY-MM-DD
+        if (typeof val === 'string' && val.startsWith('Date(')) {
+          const parts = val.replace('Date(','').replace(')','').split(',');
+          const y = parts[0], m = String(+parts[1]+1).padStart(2,'0'), d = String(parts[2]).padStart(2,'0');
+          val = `${y}-${m}-${d}`;
+        }
+        obj[key] = String(val).trim();
+      });
+      // Si existe pablo_amount (gastos desde la app), usarlo en lugar del amount total
+      const pabloAmt = parseFloat(obj['pablo_amount']);
+      obj.amount      = (pabloAmt > 0) ? pabloAmt : (parseFloat(obj['amount']) || 0);
+      obj.category    = obj['category']    || '';
+      obj.subcategory = obj['subcategory'] || '';
+      obj.description = obj['description'] || '';
+      obj.frecuencia  = obj['frecuencia']  || obj['tipo'] || obj['type'] || 'Normal';
+      if (!obj.frecuencia) obj.frecuencia = 'Normal';
+      return obj;
+    }).filter(r => {
+      // Excluir gastos exclusivos de Julieta
+      const t = (r['type'] || '').toLowerCase();
+      return r.date && r.amount > 0 && t !== 'julieta';
+    });
+
+    if (allData.length === 0) throw new Error('No hay filas válidas en la hoja.');
+
+    filtered = [...allData];
+    populateFilters();
+
+    const total  = allData.reduce((s,r)=>s+r.amount,0);
+    const months = new Set(allData.map(r=>getMonth(r.date)?.key).filter(Boolean)).size;
+    document.getElementById('header-sub').textContent =
+      `${allData.length} transacciones · ${months} meses · ${fmtAUDFull(total)} AUD total`;
+    document.getElementById('last-updated').textContent =
+      ' · Actualizado: ' + new Date().toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('sort-date').textContent = ' ▼';
+
+    render();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  } catch(err) {
+    showError(err.message);
+  }
+};
+
+function showUploadScreen() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('upload-screen').style.display = 'flex';
+}
+
+function handleFileInput(input) {
+  if (input.files && input.files[0]) readCSVFile(input.files[0]);
+}
+
+function handleDrop(event) {
+  event.preventDefault();
+  document.getElementById('drop-zone').style.borderColor = 'var(--border)';
+  const file = event.dataTransfer.files[0];
+  if (file && file.name.endsWith('.csv')) readCSVFile(file);
+}
+
+function readCSVFile(file) {
+  document.getElementById('upload-screen').style.display = 'none';
+  document.getElementById('loading').style.display = 'flex';
+  const reader = new FileReader();
+  reader.onload = e => initWithCSV(e.target.result);
+  reader.onerror = () => { document.getElementById('loading').style.display='none'; alert('No se pudo leer el archivo.'); };
+  reader.readAsText(file);
+}
+
+function initWithCSV(text) {
+  try {
+    allData = parseCSV(text);
+    if (allData.length === 0) throw new Error('El CSV está vacío o no tiene el formato esperado.');
+    onDataReady();
+  } catch(err) {
+    document.getElementById('loading').style.display = 'none';
+    alert('Error al parsear el CSV: ' + err.message);
+    showUploadScreen();
+  }
+}
+
+function onDataReady() {
+  filtered = [...allData];
+  populateFilters();
+  const total  = allData.reduce((s,r)=>s+r.amount,0);
+  const months = new Set(allData.map(r=>getMonth(r.date)?.key).filter(Boolean)).size;
+  document.getElementById('header-sub').textContent =
+    `${allData.length} transacciones · ${months} meses · ${fmtAUDFull(total)} AUD total`;
+  document.getElementById('last-updated').textContent =
+    ' · ' + new Date().toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('sort-date').textContent = ' ▼';
+  render();
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+// ── GVIZ auto-load (si el sheet está compartido públicamente) ─────────────────
+window.__onSheetData = function(data) {
+  try {
+    const table = data.table;
+    if (!table || !table.rows || table.rows.length === 0) {
+      showUploadScreen(); return;
+    }
+    const cols = table.cols.map(c => c.label.trim().toLowerCase());
+    allData = table.rows.map(row => {
+      const obj = {};
+      row.c.forEach((cell, i) => {
+        const key = cols[i];
+        let val = cell ? (cell.v !== null && cell.v !== undefined ? cell.v : (cell.f || '')) : '';
+        if (typeof val === 'string' && val.startsWith('Date(')) {
+          const parts = val.replace('Date(','').replace(')','').split(',');
+          const y = parts[0], m = String(+parts[1]+1).padStart(2,'0'), d = String(parts[2]).padStart(2,'0');
+          val = `${y}-${m}-${d}`;
+        }
+        obj[key] = String(val).trim();
+      });
+      // Si existe pablo_amount (gastos desde la app), usarlo en lugar del amount total
+      const pabloAmt = parseFloat(obj['pablo_amount']);
+      obj.amount      = (pabloAmt > 0) ? pabloAmt : (parseFloat(obj['amount']) || 0);
+      obj.category    = obj['category']    || '';
+      obj.subcategory = obj['subcategory'] || '';
+      obj.description = obj['description'] || '';
+      obj.frecuencia  = obj['frecuencia']  || obj['tipo'] || obj['type'] || 'Normal';
+      if (!obj.frecuencia) obj.frecuencia = 'Normal';
+      return obj;
+    }).filter(r => {
+      // Excluir gastos exclusivos de Julieta
+      const t = (r['type'] || '').toLowerCase();
+      return r.date && r.amount > 0 && t !== 'julieta';
+    });
+
+    if (allData.length === 0) { showUploadScreen(); return; }
+    onDataReady();
+  } catch(err) {
+    showUploadScreen();
+  }
+};
+
+function loadData() {
+  const script = document.createElement('script');
+  script.src = GVIZ_URL;
+  script.onerror = () => showUploadScreen();
+  document.head.appendChild(script);
+  // Si en 8 segundos no cargó nada, mostrar pantalla de upload
+  setTimeout(() => {
+    if (allData.length === 0 && document.getElementById('app').style.display === 'none') {
+      showUploadScreen();
+    }
+  }, 8000);
+}
+
+loadData();
+</script>
+</body>
+</html>
