@@ -74,6 +74,9 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 .filter-chip.active[data-filter="julieta"] { background: #3d1a2a; color: #d86a9f; border-color: #6b2a4a; }
 .filter-chip.active[data-filter="compartido"] { background: #1a3d28; color: #4db87a; border-color: #2d6b4a; }
 .filter-chip.active[data-filter="transferencia"] { background: #2d2a1a; color: #d4b85a; border-color: #6b5a1a; }
+.sort-btn { padding: 3px 9px; font-size: 10px; border: 1px solid #2a2a24; border-radius: 12px; background: transparent; color: #666; cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; }
+.sort-btn:hover { border-color: #2d6b4a; color: #999; }
+.sort-btn.active { background: #1a3d28; color: #4db87a; border-color: #2d6b4a; }
 .badge-compartido { background: #1a3d28; color: #4db87a; border: 1px solid #2d6b4a; }
 .badge-pablo { background: #1a2a3d; color: #6a9fd8; border: 1px solid #2a4a6b; }
 .badge-julieta { background: #3d1a2a; color: #d86a9f; border: 1px solid #6b2a4a; }
@@ -401,7 +404,12 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
       <div class="modal-title" id="drilldown-title">Categoría</div>
       <button class="modal-close" onclick="cerrarDrilldown()">✕</button>
     </div>
-    <div id="drilldown-stats" style="display:flex;justify-content:space-between;gap:10px;margin-bottom:12px;font-size:11px;color:#2d8a52;letter-spacing:2px;text-transform:uppercase;"></div>
+    <div id="drilldown-stats" style="display:flex;justify-content:space-between;gap:10px;margin-bottom:10px;font-size:11px;color:#2d8a52;letter-spacing:2px;text-transform:uppercase;"></div>
+    <div id="drilldown-sort" style="display:flex;gap:6px;margin-bottom:10px;align-items:center;">
+      <span style="font-size:10px;color:#555;letter-spacing:1px;text-transform:uppercase;">Ordenar:</span>
+      <button class="sort-btn active" id="sort-fecha" onclick="setDrilldownSort('fecha')">Fecha ↓</button>
+      <button class="sort-btn" id="sort-monto" onclick="setDrilldownSort('monto')">Monto</button>
+    </div>
     <div id="drilldown-list" style="max-height:60vh;overflow-y:auto;"></div>
   </div>
 </div>
@@ -1068,37 +1076,75 @@ function renderActiveDashTab() {
 
 function getInNet(g){ return parseFloat(g.net)||parseFloat(g.gross)||0; }
 
+let drilldownItems=[];
+let drilldownSort={by:'fecha', dir:'desc'};
+
 function openDrilldown(categoria, fG){
-  // Filtra los gastos de la categoría seleccionada (usando los mismos filtros del dashboard)
-  const items=fG.filter(g=>g.categoria===categoria)
-    .slice()
-    .sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
-  const total=items.reduce((s,g)=>s+(g.pablo_amount??parseFloat(g.monto)),0);
+  // Captura los gastos de la categoría (usando los mismos filtros del dashboard)
+  drilldownItems=fG.filter(g=>g.categoria===categoria);
+  drilldownSort={by:'fecha', dir:'desc'}; // reset a default
+  const total=drilldownItems.reduce((s,g)=>s+(g.pablo_amount??parseFloat(g.monto)),0);
   document.getElementById('drilldown-title').textContent=categoria;
   document.getElementById('drilldown-stats').innerHTML=
-    `<span>${items.length} transacciones</span><span style="color:#e07060">${fmt(total)} total</span>`;
-  const list=document.getElementById('drilldown-list');
-  if(!items.length){
-    list.innerHTML='<div class="empty-state">— sin movimientos en esta categoría —</div>';
-  } else {
-    list.innerHTML=items.map(g=>{
-      const monto=(g.pablo_amount??parseFloat(g.monto));
-      return `<div class="expense-item">
-        <div class="expense-row">
-          <div style="flex:1;min-width:0;">
-            <div class="expense-subcat">${g.subcategoria||''}</div>
-            <div class="expense-cat">${g.descripcion||'sin descripción'}</div>
-            <div class="expense-meta">${formatFecha(g.fecha)} · ${g.tipo==='transferencia'?'envió':'pagó'} ${g.payer||''}</div>
-          </div>
-          <div style="text-align:right;flex-shrink:0;margin-left:10px;">
-            <div class="expense-amount" style="color:#e07060">${fmt(monto)}</div>
-            <span class="expense-badge badge-${g.tipo}">${g.tipo}</span>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
-  }
+    `<span>${drilldownItems.length} transacciones</span><span style="color:#e07060">${fmt(total)} total</span>`;
+  renderDrilldownList();
   document.getElementById('modal-drilldown').style.display='block';
+}
+
+function setDrilldownSort(by){
+  if(drilldownSort.by===by){
+    drilldownSort.dir=drilldownSort.dir==='desc'?'asc':'desc';
+  } else {
+    drilldownSort.by=by;
+    drilldownSort.dir='desc';
+  }
+  renderDrilldownList();
+}
+
+function renderDrilldownList(){
+  // Actualizar estado visual de los botones de orden
+  const arrow=drilldownSort.dir==='desc'?'↓':'↑';
+  const fBtn=document.getElementById('sort-fecha'), mBtn=document.getElementById('sort-monto');
+  if(drilldownSort.by==='fecha'){
+    fBtn.className='sort-btn active'; fBtn.innerHTML=`Fecha ${arrow}`;
+    mBtn.className='sort-btn'; mBtn.innerHTML='Monto';
+  } else {
+    fBtn.className='sort-btn'; fBtn.innerHTML='Fecha';
+    mBtn.className='sort-btn active'; mBtn.innerHTML=`Monto ${arrow}`;
+  }
+  // Ordenar
+  const sorted=drilldownItems.slice().sort((a,b)=>{
+    let cmp;
+    if(drilldownSort.by==='fecha'){
+      cmp=String(a.fecha).localeCompare(String(b.fecha));
+    } else {
+      const aV=a.pablo_amount??parseFloat(a.monto);
+      const bV=b.pablo_amount??parseFloat(b.monto);
+      cmp=aV-bV;
+    }
+    return drilldownSort.dir==='desc'?-cmp:cmp;
+  });
+  const list=document.getElementById('drilldown-list');
+  if(!sorted.length){
+    list.innerHTML='<div class="empty-state">— sin movimientos en esta categoría —</div>';
+    return;
+  }
+  list.innerHTML=sorted.map(g=>{
+    const monto=(g.pablo_amount??parseFloat(g.monto));
+    return `<div class="expense-item">
+      <div class="expense-row">
+        <div style="flex:1;min-width:0;">
+          <div class="expense-subcat">${g.subcategoria||''}</div>
+          <div class="expense-cat">${g.descripcion||'sin descripción'}</div>
+          <div class="expense-meta">${formatFecha(g.fecha)} · ${g.tipo==='transferencia'?'envió':'pagó'} ${g.payer||''}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:10px;">
+          <div class="expense-amount" style="color:#e07060">${fmt(monto)}</div>
+          <span class="expense-badge badge-${g.tipo}">${g.tipo}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function cerrarDrilldown(){
@@ -1171,6 +1217,7 @@ function renderDashVision() {
     type:'bar',
     data:{labels:cSorted.map(([c])=>c),datasets:[{data:cSorted.map(([,v])=>+v.toFixed(2)),backgroundColor:'rgba(224,112,96,0.8)',borderColor:'#e07060',borderWidth:1,hoverBackgroundColor:'rgba(224,112,96,0.95)'}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},indexAxis:'y',
+      layout:{padding:{right:55}},
       onHover:(event,elements)=>{ event.native.target.style.cursor=elements.length?'pointer':'default'; },
       onClick:(event,elements)=>{
         if(elements && elements.length>0){
@@ -1183,7 +1230,37 @@ function renderDashVision() {
         x:{ticks:{color:'#9a8a6a',font:{size:9},callback:v=>'$'+v.toFixed(0)},grid:{color:'#252520'},border:{color:'#2d6b4a'}},
         y:{ticks:{color:'#E8DCC3',font:{size:10}},grid:{color:'#1e1e18'},border:{color:'#2d6b4a'}}
       }
-    }
+    },
+    plugins:[{
+      id:'barValueLabels',
+      afterDatasetsDraw(chart){
+        const {ctx}=chart;
+        ctx.save();
+        ctx.font="500 10px 'DM Sans', sans-serif";
+        ctx.textBaseline='middle';
+        ctx.fillStyle='#E8DCC3';
+        chart.data.datasets.forEach((ds,di)=>{
+          const meta=chart.getDatasetMeta(di);
+          meta.data.forEach((bar,i)=>{
+            const value=ds.data[i];
+            if(value==null) return;
+            const text='$'+Math.round(value).toLocaleString();
+            const textWidth=ctx.measureText(text).width;
+            const barWidth=bar.x-bar.base;
+            if(barWidth>textWidth+12){
+              // Adentro de la barra, alineado a la derecha
+              ctx.textAlign='right';
+              ctx.fillText(text, bar.x-6, bar.y);
+            } else {
+              // Afuera, a la derecha del borde de la barra
+              ctx.textAlign='left';
+              ctx.fillText(text, bar.x+6, bar.y);
+            }
+          });
+        });
+        ctx.restore();
+      }
+    }]
   });
 
   // Dual line chart (al fondo): one set of lines per selected year
