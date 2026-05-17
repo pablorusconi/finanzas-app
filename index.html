@@ -52,8 +52,10 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 .submit-btn { width: 100%; padding: 13px; font-size: 13px; border: 1px solid #2d8a52; border-radius: 3px; background: #1a3d28; color: #E8DCC3; cursor: pointer; margin-top: 4px; font-family: 'DM Sans', sans-serif; letter-spacing: 4px; text-transform: uppercase; transition: all 0.15s; }
 .submit-btn:hover { background: #2d6b4a; }
 .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.expense-item { background: #1c1c18; border: 1px solid #2a2a24; border-radius: 3px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; transition: border-color 0.15s; }
+.expense-item { background: #1c1c18; border: 1px solid #2a2a24; border-radius: 3px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px; transition: border-color 0.15s; }
 .expense-item:hover { border-color: #2d6b4a; }
+.expense-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.expense-actions { display: flex; justify-content: flex-end; gap: 6px; padding-top: 8px; border-top: 1px solid #2a2a24; }
 .expense-cat { font-size: 15px; color: #E8DCC3; font-weight: 500; font-family: 'DM Sans', sans-serif; }
 .expense-subcat { font-size: 11px; color: #2d8a52; letter-spacing: 1px; text-transform: uppercase; font-family: 'DM Sans', sans-serif; }
 .expense-meta { font-size: 12px; color: #555; margin-top: 3px; font-style: italic; font-family: 'DM Sans', sans-serif; }
@@ -726,6 +728,14 @@ async function agregarGasto() {
   btn.disabled=false; btn.textContent='registrar gasto';
 }
 
+function formatFecha(fechaIso) {
+  // '2026-04-04' → '04/04/26'
+  if(!fechaIso) return '';
+  const parts=String(fechaIso).split('-');
+  if(parts.length!==3) return fechaIso;
+  return `${parts[2]}/${parts[1]}/${parts[0].slice(-2)}`;
+}
+
 function renderHistorial() {
   const list=document.getElementById('expense-list');
   if(!gastos.length){list.innerHTML='<div class="empty-state">— sin registros —</div>';return;}
@@ -733,18 +743,20 @@ function renderHistorial() {
   const totalMonto=gastos.reduce((s,g)=>s+parseFloat(g.monto),0);
   list.innerHTML=`<div style="font-size:11px;color:#2d8a52;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;text-align:center;">${total} transacciones · ${fmt(totalMonto)} total</div>`+gastos.map((g,i)=>`
     <div class="expense-item">
-      <div style="flex:1; min-width:0;">
-        <div class="expense-subcat">${g.subcategoria}</div>
-        <div class="expense-cat">${g.categoria}</div>
-        <div class="expense-meta">${g.fecha} · ${g.descripcion||'sin descripción'} · ${g.tipo==='transferencia'?'envió':'pagó'} ${g.payer}</div>
-      </div>
-      <div style="text-align:right; flex-shrink:0; margin-left:10px;">
-        <div class="expense-amount">${fmt(g.monto)}</div>
-        <span class="expense-badge badge-${g.tipo}">${g.tipo}</span>
-        <div class="action-btns" style="justify-content:flex-end;">
-          <button class="btn-edit" onclick="abrirEdicion(${i})">editar</button>
-          <button class="btn-delete" onclick="abrirConfirm(${i})">borrar</button>
+      <div class="expense-row">
+        <div style="flex:1; min-width:0;">
+          <div class="expense-subcat">${g.subcategoria}</div>
+          <div class="expense-cat">${g.categoria}</div>
+          <div class="expense-meta">${formatFecha(g.fecha)} · ${g.descripcion||'sin descripción'} · ${g.tipo==='transferencia'?'envió':'pagó'} ${g.payer}</div>
         </div>
+        <div style="text-align:right; flex-shrink:0; margin-left:10px;">
+          <div class="expense-amount">${fmt(g.monto)}</div>
+          <span class="expense-badge badge-${g.tipo}">${g.tipo}</span>
+        </div>
+      </div>
+      <div class="expense-actions">
+        <button class="btn-edit" onclick="abrirEdicion(${i})">editar</button>
+        <button class="btn-delete" onclick="abrirConfirm(${i})">borrar</button>
       </div>
     </div>`).join('');
 
@@ -909,22 +921,22 @@ function renderIngresos() {
     const superPct=g.gross>0&&g.super>0?((g.super/g.gross)*100).toFixed(1)+'%':'—';
     return `
     <div class="expense-item">
-      <div style="flex:1;min-width:0;">
-        <div class="expense-cat">${g.category||'Ingreso'}</div>
-        <div class="expense-subcat">${g.description||''}</div>
-        <div class="expense-meta">${g.fecha}</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-top:8px;">
-          <div><div class="stat-label" style="font-size:9px;">Bruto</div><div style="font-size:13px;color:#E8DCC3;font-family:'DM Serif Display',serif;">${fmt(g.gross)}</div></div>
-          <div><div class="stat-label" style="font-size:9px;">Tax <span style="color:#555;">${taxPct}</span></div><div style="font-size:13px;color:#8a3020;font-family:'DM Serif Display',serif;">${fmt(g.tax)}</div></div>
-          <div><div class="stat-label" style="font-size:9px;">Super <span style="color:#555;">${superPct}</span></div><div style="font-size:13px;color:#6a9fd8;font-family:'DM Serif Display',serif;">${fmt(g.super)}</div></div>
-          <div><div class="stat-label" style="font-size:9px;">Neto</div><div style="font-size:13px;color:#4ade80;font-family:'DM Serif Display',serif;">${fmt(g.net)}</div></div>
+      <div class="expense-row">
+        <div style="flex:1;min-width:0;">
+          <div class="expense-cat">${g.category||'Ingreso'}</div>
+          <div class="expense-subcat">${g.description||''}</div>
+          <div class="expense-meta">${formatFecha(g.fecha)}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-top:8px;">
+            <div><div class="stat-label" style="font-size:9px;">Bruto</div><div style="font-size:13px;color:#E8DCC3;font-family:'DM Serif Display',serif;">${fmt(g.gross)}</div></div>
+            <div><div class="stat-label" style="font-size:9px;">Tax <span style="color:#555;">${taxPct}</span></div><div style="font-size:13px;color:#8a3020;font-family:'DM Serif Display',serif;">${fmt(g.tax)}</div></div>
+            <div><div class="stat-label" style="font-size:9px;">Super <span style="color:#555;">${superPct}</span></div><div style="font-size:13px;color:#6a9fd8;font-family:'DM Serif Display',serif;">${fmt(g.super)}</div></div>
+            <div><div class="stat-label" style="font-size:9px;">Neto</div><div style="font-size:13px;color:#4ade80;font-family:'DM Serif Display',serif;">${fmt(g.net)}</div></div>
+          </div>
         </div>
       </div>
-      <div style="text-align:right;flex-shrink:0;margin-left:10px;">
-        <div class="action-btns" style="justify-content:flex-end;">
-          <button class="btn-edit" onclick="abrirEdicionIngreso(${i})">editar</button>
-          <button class="btn-delete" onclick="borrarIngreso(${i})">borrar</button>
-        </div>
+      <div class="expense-actions">
+        <button class="btn-edit" onclick="abrirEdicionIngreso(${i})">editar</button>
+        <button class="btn-delete" onclick="borrarIngreso(${i})">borrar</button>
       </div>
     </div>`;
   }).join('');
