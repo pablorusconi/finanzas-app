@@ -296,6 +296,10 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
           <div class="chart-title">Egresos por categoría</div>
           <div id="chart-bar-cat-wrap" style="position:relative;height:180px;"><canvas id="chart-bar-cat"></canvas></div>
         </div>
+        <div class="chart-card">
+          <div class="chart-title">Gastos · % del ingreso neto</div>
+          <div style="position:relative;height:300px;"><canvas id="chart-pie-income"></canvas></div>
+        </div>
       </div>
 
       <!-- Dashboard Semanal -->
@@ -1070,7 +1074,7 @@ async function agregarIngreso() {
 
 // ─── DASHBOARDS ─────────────────────────────────────────────────────────────────
 
-let chartLineMensual=null, chartBarCat=null, chartLineSemanal=null, chartBarSemanal=null;
+let chartLineMensual=null, chartBarCat=null, chartLineSemanal=null, chartBarSemanal=null, chartPieIncome=null;
 const MNAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
 function showDashTab(tab) {
@@ -1274,6 +1278,65 @@ function renderDashVision() {
             }
           });
         });
+        ctx.restore();
+      }
+    }]
+  });
+
+  // ── Donut: gastos como % del ingreso neto ───────────────────────────────────
+  const BUCKETS=[
+    {label:'Rent',      color:'#c0614a', match:g=>/(rent)/i.test(g.categoria)||/(rent)/i.test(g.subcategoria)},
+    {label:'Groceries', color:'#4a8a5a', match:g=>/(grocer|supermarket|coles|woolworth|aldi|iga)/i.test(g.categoria)||/(grocer|supermarket|coles|woolworth|aldi|iga)/i.test(g.subcategoria)},
+    {label:'Fuel',      color:'#c09a30', match:g=>/(fuel|petrol|gas station)/i.test(g.subcategoria)||/(fuel|petrol)/i.test(g.categoria)},
+    {label:'Phone',     color:'#4a70b0', match:g=>/(phone|mobile|telstra|optus|vodafone)/i.test(g.categoria)||/(phone|mobile|telstra|optus|vodafone)/i.test(g.subcategoria)},
+    {label:'Subscriptions',color:'#7a4ab0',match:g=>/(subscri|netflix|spotify|disney|amazon prime|youtube)/i.test(g.categoria)||/(subscri|netflix|spotify|disney|amazon prime|youtube)/i.test(g.subcategoria)},
+    {label:'Health',    color:'#4aaaa0', match:g=>/(health|medical|pharmacy|doctor|dentist|hospital)/i.test(g.categoria)||/(health|medical|pharmacy|doctor|dentist|hospital)/i.test(g.subcategoria)},
+    {label:'Alcohol',   color:'#c07040', match:g=>/(alcohol|beer|wine|liquor|bottle shop|dan murphy)/i.test(g.categoria)||/(alcohol|beer|wine|liquor|bottle shop|dan murphy)/i.test(g.subcategoria)},
+    {label:'Alternaleaf',color:'#5a9a3a',match:g=>/(alternaleaf|cannabis|weed)/i.test(g.categoria)||/(alternaleaf|cannabis|weed)/i.test(g.subcategoria)},
+  ];
+  const totalIncome=fI.reduce((s,g)=>s+getInNet(g),0);
+  const bucketAmounts=BUCKETS.map(b=>({label:b.label,color:b.color,amount:fG.filter(b.match).reduce((s,g)=>s+(g.pablo_amount??parseFloat(g.monto)),0)}));
+  const bucketTotal=bucketAmounts.reduce((s,b)=>s+b.amount,0);
+  const expenseTotal=fG.reduce((s,g)=>s+(g.pablo_amount??parseFloat(g.monto)),0);
+  const otrosAmount=Math.max(0,expenseTotal-bucketTotal);
+  const pieLabels=[...bucketAmounts.map(b=>b.label),'Otros'];
+  const pieData=[...bucketAmounts.map(b=>+b.amount.toFixed(2)),+otrosAmount.toFixed(2)];
+  const pieColors=[...bucketAmounts.map(b=>b.color),'#555'];
+  if(chartPieIncome) chartPieIncome.destroy();
+  chartPieIncome=new Chart(document.getElementById('chart-pie-income'),{
+    type:'doughnut',
+    data:{labels:pieLabels,datasets:[{data:pieData,backgroundColor:pieColors,borderColor:'#141412',borderWidth:2,hoverBorderWidth:3}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,cutout:'55%',
+      plugins:{
+        legend:{display:true,position:'bottom',labels:{color:'#E8DCC3',font:{size:10},padding:8,boxWidth:10}},
+        tooltip:{callbacks:{
+          label:ctx=>{
+            const amt=ctx.parsed;
+            const pctInc=totalIncome>0?(amt/totalIncome*100).toFixed(1):'—';
+            const pctEgr=expenseTotal>0?(amt/expenseTotal*100).toFixed(1):'—';
+            return ` $${amt.toFixed(0)} · ${pctInc}% del ingreso · ${pctEgr}% del gasto`;
+          }
+        }}
+      }
+    },
+    plugins:[{
+      id:'centerText',
+      beforeDraw(chart){
+        if(!totalIncome) return;
+        const {ctx,chartArea:{top,bottom,left,right}}=chart;
+        const cx=(left+right)/2, cy=(top+bottom)/2;
+        const savings=totalIncome-expenseTotal;
+        const savingsPct=totalIncome>0?(savings/totalIncome*100).toFixed(0):0;
+        ctx.save();
+        ctx.font="500 11px 'DM Sans',sans-serif";
+        ctx.fillStyle='#555';
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.fillText('ahorro',cx,cy-12);
+        ctx.font="400 18px 'DM Serif Display',serif";
+        ctx.fillStyle=savings>=0?'#4ade80':'#e07060';
+        ctx.fillText((savings>=0?'+':'')+savingsPct+'%',cx,cy+8);
         ctx.restore();
       }
     }]
