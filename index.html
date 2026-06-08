@@ -167,21 +167,21 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 
   <div id="main-content" style="display:none;">
     <nav class="bottom-nav">
-      <button class="nav-item active" id="nav-cargar" onclick="showTab('cargar')">
-        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
-        Gastos
-      </button>
-      <button class="nav-item" id="nav-historial" onclick="showTab('historial')">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        Historial
-      </button>
-      <button class="nav-item" id="nav-saldo" onclick="showTab('saldo')">
+      <button class="nav-item active" id="nav-saldo" onclick="showTab('saldo')">
         <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         Saldo
       </button>
       <button class="nav-item" id="nav-ingresos" onclick="showTab('ingresos')">
         <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7 7 7-7"/></svg>
         Ingresos
+      </button>
+      <button class="nav-item" id="nav-cargar" onclick="showTab('cargar')">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+        Gastos
+      </button>
+      <button class="nav-item" id="nav-historial" onclick="showTab('historial')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Historial
       </button>
       <button class="nav-item" id="nav-dash" onclick="showTab('dash')">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7M17.5 14v7"/></svg>
@@ -193,7 +193,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
       </button>
     </nav>
 
-    <div id="tab-cargar">
+    <div id="tab-cargar" style="display:none;">
       <div class="card">
         <div class="balance-label">Saldo actual</div>
         <div class="balance-amount" id="balance-main">$0.00</div>
@@ -236,7 +236,14 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
     <div id="tab-historial" style="display:none;">
       <div class="historial-search">
         <input type="text" class="search-input" id="search-input" placeholder="buscar por categoría, descripción, fecha..." oninput="onSearchInput(this.value)">
-        <div class="filter-chips">
+        <!-- Filtro de tipo principal -->
+        <div class="filter-chips" style="margin-bottom:4px;">
+          <button class="filter-chip active" data-htype="all" onclick="setHistorialType('all')">Todo</button>
+          <button class="filter-chip" data-htype="expenses" onclick="setHistorialType('expenses')">Expenses</button>
+          <button class="filter-chip" data-htype="incomes" onclick="setHistorialType('incomes')">Incomes</button>
+        </div>
+        <!-- Filtro por tipo de gasto (visible solo con Expenses o Todo) -->
+        <div class="filter-chips" id="expense-type-chips">
           <button class="filter-chip active" data-filter="todos" onclick="setFilter('todos')">Todos</button>
           <button class="filter-chip" data-filter="pablo" onclick="setFilter('pablo')">Pablo</button>
           <button class="filter-chip" data-filter="julieta" onclick="setFilter('julieta')">Julieta</button>
@@ -271,11 +278,26 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
       <div id="income-list"><div class="empty-state">— sin registros —</div></div>
     </div>
 
-    <div id="tab-saldo" style="display:none;">
-      <div class="card">
-        <div class="balance-label">Resumen general</div>
-        <div class="balance-amount" id="saldo-total">$0.00</div>
-        <div class="balance-sub" id="saldo-desc">sin movimientos</div>
+    <div id="tab-saldo">
+      <!-- Card principal de balance -->
+      <div class="card" style="text-align:center;padding:1.75rem 1.25rem 1.5rem;">
+        <div class="balance-label" style="margin-bottom:1.4rem;">Balance actual</div>
+        <!-- Bubbles P ←→ J -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-bottom:1.4rem;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+            <div style="width:58px;height:58px;border-radius:50%;background:#1a2a3d;border:2px solid #2a4a6b;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',Georgia,serif;font-size:24px;color:#6a9fd8;">P</div>
+            <span style="font-size:9px;color:#6a9fd8;letter-spacing:2px;text-transform:uppercase;">Pablo</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div id="saldo-arrow-icon" style="font-size:22px;color:#555;line-height:1;">→</div>
+            <div class="balance-amount" id="saldo-total" style="font-size:32px;line-height:1.1;">$0.00</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+            <div style="width:58px;height:58px;border-radius:50%;background:#3d1a2a;border:2px solid #6b2a4a;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',Georgia,serif;font-size:24px;color:#d86a9f;">J</div>
+            <span style="font-size:9px;color:#d86a9f;letter-spacing:2px;text-transform:uppercase;">Julieta</span>
+          </div>
+        </div>
+        <div class="balance-sub" id="saldo-desc" style="font-size:13px;letter-spacing:2px;">sin movimientos</div>
       </div>
       <div class="divider">desglose</div>
       <div class="stat-grid">
@@ -502,7 +524,7 @@ let ingresos=[], ingresosSheetId=null;
 let accessToken='', tokenExpiry=0;
 let gastosSheetId=null;
 let gastosHistorico=[], ingresosHistorico=[];
-let searchQuery='', activeFilter='todos';
+let searchQuery='', activeFilter='todos', historialTypeFilter='all';
 
 // ─── Dashboard state ──────────────────────────────────────────────────────────
 let selectedYears=new Set(['2026']);
@@ -794,6 +816,12 @@ function calcularSaldo() {
   else{t=fmt(Math.abs(bal));d='pablo le debe a julieta';c='balance-negative';}
   ['balance-main','saldo-total'].forEach(id=>{ const el=document.getElementById(id); el.textContent=t; el.className='balance-amount '+c; });
   ['balance-desc','saldo-desc'].forEach(id=>document.getElementById(id).textContent=d);
+  const arrowEl=document.getElementById('saldo-arrow-icon');
+  if(arrowEl){
+    if(Math.abs(bal)<0.01){arrowEl.textContent='⇄';arrowEl.style.color='#555';}
+    else if(bal>0){arrowEl.textContent='←';arrowEl.style.color='#d86a9f';} // J le debe a P → flecha J→P (J hacia la izquierda)
+    else{arrowEl.textContent='→';arrowEl.style.color='#6a9fd8';} // P le debe a J → flecha P→J
+  }
   const lastExpEl=document.getElementById('balance-last-expense');
   if(lastExpEl){
     const last=gastos.length?gastos[0].fecha:'';
@@ -850,9 +878,19 @@ function onSearchInput(val) {
 
 function setFilter(filter) {
   activeFilter=filter;
-  document.querySelectorAll('.filter-chip').forEach(c=>{
+  document.querySelectorAll('[data-filter]').forEach(c=>{
     c.classList.toggle('active', c.dataset.filter===filter);
   });
+  renderHistorial();
+}
+
+function setHistorialType(type) {
+  historialTypeFilter=type;
+  document.querySelectorAll('[data-htype]').forEach(c=>{
+    c.classList.toggle('active', c.dataset.htype===type);
+  });
+  const expChips=document.getElementById('expense-type-chips');
+  if(expChips) expChips.style.display=type==='incomes'?'none':'flex';
   renderHistorial();
 }
 
@@ -878,33 +916,91 @@ function gastosFiltradosConIndice() {
 
 function renderHistorial() {
   const list=document.getElementById('expense-list');
-  if(!gastos.length){list.innerHTML='<div class="empty-state">— sin registros —</div>';return;}
-  const filtered=gastosFiltradosConIndice();
-  if(!filtered.length){
-    list.innerHTML='<div class="empty-state">— sin resultados —</div>';
+  const q=(searchQuery||'').trim().toLowerCase();
+
+  // Construir lista unificada según tipo seleccionado
+  let items=[];
+
+  if(historialTypeFilter!=='incomes'){
+    // Agregar expenses (con filtro de tipo y búsqueda)
+    gastosFiltradosConIndice().forEach(({g,origIdx})=>{
+      items.push({_type:'expense', fecha:g.fecha, g, origIdx});
+    });
+  }
+
+  if(historialTypeFilter!=='expenses'){
+    // Agregar incomes (con búsqueda)
+    ingresos.forEach((g,origIdx)=>{
+      if(q && !(
+        (g.category||'').toLowerCase().includes(q)||
+        (g.description||'').toLowerCase().includes(q)||
+        formatFecha(g.fecha).toLowerCase().includes(q)||
+        String(g.gross).includes(q)
+      )) return;
+      items.push({_type:'income', fecha:g.fecha, g, origIdx});
+    });
+  }
+
+  // Ordenar por fecha desc
+  items.sort((a,b)=>b.fecha.localeCompare(a.fecha));
+
+  if(!items.length){
+    list.innerHTML='<div class="empty-state">— sin registros —</div>';
     return;
   }
-  const total=filtered.length;
-  const totalMonto=filtered.reduce((s,{g})=>s+parseFloat(g.monto),0);
-  list.innerHTML=`<div style="font-size:11px;color:#2d8a52;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;text-align:center;">${total} transacciones · ${fmt(totalMonto)} total</div>`+filtered.map(({g,origIdx})=>`
-    <div class="expense-item">
-      <div class="expense-row">
-        <div style="flex:1; min-width:0;">
-          <div class="expense-subcat">${g.subcategoria}</div>
-          <div class="expense-cat">${g.categoria}</div>
-          <div class="expense-meta">${formatFecha(g.fecha)} · ${g.descripcion||'sin descripción'} · ${g.tipo==='transferencia'?'envió':'pagó'} ${g.payer}</div>
-        </div>
-        <div style="text-align:right; flex-shrink:0; margin-left:10px;">
-          <div class="expense-amount">${fmt(g.monto)}</div>
-          <span class="expense-badge badge-${g.tipo}">${g.tipo}</span>
-        </div>
-      </div>
-      <div class="expense-actions">
-        <button class="btn-edit" onclick="abrirEdicion(${origIdx})">editar</button>
-        <button class="btn-delete" onclick="abrirConfirm(${origIdx})">borrar</button>
-      </div>
-    </div>`).join('');
 
+  const expCount=items.filter(i=>i._type==='expense').length;
+  const incCount=items.filter(i=>i._type==='income').length;
+  const summary=historialTypeFilter==='all'
+    ?`${expCount} expense${expCount!==1?'s':''} · ${incCount} ingreso${incCount!==1?'s':''}`
+    :`${items.length} registro${items.length!==1?'s':''}`;
+
+  list.innerHTML=`<div style="font-size:11px;color:#2d8a52;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;text-align:center;">${summary}</div>`
+  +items.map(item=>{
+    if(item._type==='expense'){
+      const g=item.g, origIdx=item.origIdx;
+      return `<div class="expense-item">
+        <div class="expense-row">
+          <div style="flex:1;min-width:0;">
+            <div class="expense-subcat">${g.subcategoria}</div>
+            <div class="expense-cat">${g.categoria}</div>
+            <div class="expense-meta">${formatFecha(g.fecha)} · ${g.descripcion||'sin descripción'} · ${g.tipo==='transferencia'?'envió':'pagó'} ${g.payer}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:10px;">
+            <div class="expense-amount">${fmt(g.monto)}</div>
+            <span class="expense-badge badge-${g.tipo}">${g.tipo}</span>
+          </div>
+        </div>
+        <div class="expense-actions">
+          <button class="btn-edit" onclick="abrirEdicion(${origIdx})">editar</button>
+          <button class="btn-delete" onclick="abrirConfirm(${origIdx})">borrar</button>
+        </div>
+      </div>`;
+    } else {
+      const g=item.g, origIdx=item.origIdx;
+      return `<div class="expense-item" style="border-color:#1a3d28;">
+        <div class="expense-row">
+          <div style="flex:1;min-width:0;">
+            <div class="expense-subcat" style="color:#4ade80;">ingreso</div>
+            <div class="expense-cat">${g.category||'Ingreso'}</div>
+            <div class="expense-meta">${formatFecha(g.fecha)}${g.description?' · '+g.description:''}</div>
+            <div style="display:flex;gap:14px;margin-top:6px;font-size:11px;">
+              <span style="color:#555;">Bruto <span style="color:#E8DCC3;">${fmt(g.gross)}</span></span>
+              <span style="color:#555;">Tax <span style="color:#8a3020;">${fmt(g.tax)}</span></span>
+              <span style="color:#555;">Neto <span style="color:#4ade80;">${fmt(g.net)}</span></span>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:10px;">
+            <div class="expense-amount" style="color:#4ade80;">+${fmt(g.net)}</div>
+          </div>
+        </div>
+        <div class="expense-actions">
+          <button class="btn-edit" onclick="abrirEdicionIngreso(${origIdx})">editar</button>
+          <button class="btn-delete" onclick="borrarIngreso(${origIdx})">borrar</button>
+        </div>
+      </div>`;
+    }
+  }).join('');
 }
 
 // ─── ELIMINAR ─────────────────────────────────────────────────────────────────
@@ -1117,7 +1213,7 @@ async function agregarIngreso() {
   const newRowIndex=ingresos.length+2;
   ingresos.push({fecha,gross,tax,super:superVal,net,category,description,taxPct,superPct,rowIndex:newRowIndex});
   ingresos.sort((a,b)=>b.fecha.localeCompare(a.fecha));
-  calcularResumenIngresos(); renderIngresos();
+  calcularResumenIngresos(); renderIngresos(); renderHistorial();
   ['i-gross','i-tax','i-super','i-net','i-desc'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('i-cat').value='';
   btn.disabled=false; btn.textContent='registrar ingreso';
@@ -1616,7 +1712,7 @@ async function borrarIngreso(localIdx) {
     if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||'Error HTTP '+res.status);}
     ingresos.splice(localIdx,1);
     ingresos.forEach(g=>{if(g.rowIndex>ingreso.rowIndex)g.rowIndex--;});
-    calcularResumenIngresos(); renderIngresos();
+    calcularResumenIngresos(); renderIngresos(); renderHistorial();
     showToast('ingreso eliminado ✓');
   } catch(e){showToast('error al eliminar: '+e.message,true);}
 }
@@ -1686,7 +1782,7 @@ async function guardarEdicionIngreso() {
     );
     if(!resPut.ok){const errData=await resPut.json().catch(()=>({}));throw new Error(errData.error?.message||'Error HTTP '+resPut.status);}
     ingresos[editIncomeIndex]={fecha,gross,tax,super:superVal,net,category,description,taxPct,superPct,rowIndex};
-    calcularResumenIngresos(); renderIngresos();
+    calcularResumenIngresos(); renderIngresos(); renderHistorial();
     cerrarEdicionIngreso();
     showToast('ingreso actualizado en Google Sheets ✓');
   } catch(e) {
