@@ -11,7 +11,7 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-height: 100vh; color: #E8DCC3; font-size: 16px; }
-.app { max-width: 420px; margin: 0 auto; padding: 1rem; }
+.app { max-width: 420px; margin: 0 auto; padding: 1rem 1rem 72px; }
 .header { text-align: center; padding: 1.5rem 0 1rem; border-bottom: 1px solid #2d6b4a; margin-bottom: 1.25rem; position: relative; }
 .header-logo { width: 52px; height: 52px; border-radius: 12px; margin: 0 auto 8px; display: block; }
 .header h1 { font-family: 'DM Serif Display', Georgia, serif; font-size: 30px; font-weight: 400; color: #E8DCC3; letter-spacing: 5px; text-transform: uppercase; }
@@ -23,10 +23,12 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 .status-dot.error { background: #8a2d2d; }
 .divider { display: flex; align-items: center; gap: 10px; margin: 0.75rem 0; color: #2d6b4a; font-size: 13px; font-style: italic; }
 .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #2d6b4a; }
-.tab-bar { display: flex; gap: 0; border: 1px solid #2d6b4a; border-radius: 4px; overflow: hidden; margin-bottom: 1.25rem; }
-.tab { flex: 1; padding: 10px 0; font-size: 11px; text-align: center; cursor: pointer; border: none; background: transparent; color: #666; font-family: 'DM Sans', sans-serif; letter-spacing: 1px; text-transform: uppercase; border-right: 1px solid #2d6b4a; transition: all 0.15s; }
-.tab:last-child { border-right: none; }
-.tab.active { background: #2d6b4a; color: #E8DCC3; }
+/* ─── Bottom Nav ─── */
+.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: #141412; border-top: 1px solid #2d6b4a; display: flex; z-index: 50; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 0 10px; cursor: pointer; border: none; background: transparent; color: #555; font-family: 'DM Sans', sans-serif; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; transition: color 0.15s; gap: 4px; -webkit-tap-highlight-color: transparent; }
+.nav-item.active { color: #4db87a; }
+.nav-item svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.nav-item.active svg { stroke: #4db87a; }
 .card { background: #1c1c18; border: 1px solid #2d6b4a; border-radius: 4px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
 .balance-label { font-size: 11px; color: #2d8a52; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
 .balance-amount { font-family: 'DM Serif Display', Georgia, serif; font-size: 42px; font-weight: 400; color: #E8DCC3; line-height: 1; }
@@ -164,14 +166,32 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
   </div>
 
   <div id="main-content" style="display:none;">
-    <div class="tab-bar">
-      <button class="tab active" onclick="showTab('cargar')">Gastos</button>
-      <button class="tab" onclick="showTab('historial')">Historial</button>
-      <button class="tab" onclick="showTab('saldo')">Saldo</button>
-      <button class="tab" onclick="showTab('ingresos')">Ingresos</button>
-      <button class="tab" onclick="showTab('dash')">Dash</button>
-      <button class="tab" onclick="showTab('info')">Info</button>
-    </div>
+    <nav class="bottom-nav">
+      <button class="nav-item active" id="nav-cargar" onclick="showTab('cargar')">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+        Gastos
+      </button>
+      <button class="nav-item" id="nav-historial" onclick="showTab('historial')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Historial
+      </button>
+      <button class="nav-item" id="nav-saldo" onclick="showTab('saldo')">
+        <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Saldo
+      </button>
+      <button class="nav-item" id="nav-ingresos" onclick="showTab('ingresos')">
+        <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7 7 7-7"/></svg>
+        Ingresos
+      </button>
+      <button class="nav-item" id="nav-dash" onclick="showTab('dash')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7M17.5 14v7"/></svg>
+        Dash
+      </button>
+      <button class="nav-item" id="nav-info" onclick="showTab('info')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        Info
+      </button>
+    </nav>
 
     <div id="tab-cargar">
       <div class="card">
@@ -324,6 +344,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
           <table class="dash-table" id="dash-tabla-semanal"></table>
         </div>
       </div>
+    </div>
     <!-- ─── INFO TAB ─── -->
     <div id="tab-info" style="display:none;">
       <div class="card">
@@ -349,7 +370,6 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
       </div>
     </div>
 
-    </div>
   </div>
 
   <div id="connecting-screen" class="connecting-screen">— iniciando —</div>
@@ -1676,8 +1696,11 @@ async function guardarEdicionIngreso() {
 }
 
 function showTab(tab) {
-  ['cargar','historial','saldo','ingresos','dash','info'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===tab?'block':'none';});
-  document.querySelectorAll('.tab').forEach((btn,i)=>{btn.className='tab'+((['cargar','historial','saldo','ingresos','dash','info'][i])===tab?' active':'');});
+  ['cargar','historial','saldo','ingresos','dash','info'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===tab?'block':'none';
+    const navBtn=document.getElementById('nav-'+t);
+    if(navBtn) navBtn.className='nav-item'+(t===tab?' active':'');
+  });
   if(tab==='dash') showDashTab('vision');
   if(tab==='info') loadInfoTab();
 }
