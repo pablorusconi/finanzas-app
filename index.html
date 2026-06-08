@@ -177,6 +177,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
         <div class="balance-label">Saldo actual</div>
         <div class="balance-amount" id="balance-main">$0.00</div>
         <div class="balance-sub" id="balance-desc">sin movimientos</div>
+        <div id="balance-last-expense" style="font-size:11px;color:#555;letter-spacing:1px;margin-top:6px;font-style:italic;">último expense: —</div>
       </div>
       <div class="card">
         <div class="field"><label>Fecha</label><input type="date" id="fecha" /></div>
@@ -230,6 +231,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
         <div class="balance-label">Total neto 2026</div>
         <div class="balance-amount balance-positive" id="ing-total">$0.00</div>
         <div class="balance-sub" id="ing-sub">sin ingresos</div>
+        <div id="balance-last-income" style="font-size:11px;color:#555;letter-spacing:1px;margin-top:6px;font-style:italic;">último ingreso: —</div>
       </div>
       <div class="card">
         <div class="field"><label>Fecha</label><input type="date" id="i-fecha" /></div>
@@ -587,7 +589,7 @@ async function loadExistingData(token) {
     tipo:r[5]||'compartido',
     payer:r[6]||'pablo',
     rowIndex:i+2
-  })).filter(g=>g.fecha.startsWith('2026')).reverse();
+  })).filter(g=>g.fecha.startsWith('2026')).sort((a,b)=>b.fecha.localeCompare(a.fecha));
 
   const incData=await ingresosRes.json();
   ingresos=(incData.values||[]).map((r,i)=>({
@@ -601,7 +603,7 @@ async function loadExistingData(token) {
     taxPct:r[7]||'0',
     superPct:r[8]||'0',
     rowIndex:i+2
-  })).reverse();
+  })).sort((a,b)=>b.fecha.localeCompare(a.fecha));
 
   // ── Normaliza fechas a YYYY-MM-DD ────────────────────────────────────────────
   // Acepta: YYYY-MM-DD, DD/MM/YYYY, D/M/YYYY, MM/DD/YYYY, YYYY/MM/DD
@@ -742,6 +744,11 @@ function calcularSaldo() {
   else{t=fmt(Math.abs(bal));d='pablo le debe a julieta';c='balance-negative';}
   ['balance-main','saldo-total'].forEach(id=>{ const el=document.getElementById(id); el.textContent=t; el.className='balance-amount '+c; });
   ['balance-desc','saldo-desc'].forEach(id=>document.getElementById(id).textContent=d);
+  const lastExpEl=document.getElementById('balance-last-expense');
+  if(lastExpEl){
+    const last=gastos.length?gastos[0].fecha:'';
+    lastExpEl.textContent=last?'último expense: '+formatFecha(last):'último expense: —';
+  }
 }
 
 async function agregarGasto() {
@@ -764,7 +771,8 @@ async function agregarGasto() {
   } catch(e){showToast('error: '+e.message,true);btn.disabled=false;btn.textContent='registrar gasto';return;}
   // El nuevo gasto va al final del sheet, rowIndex = gastos.length + 2
   const newRowIndex=gastos.length+2;
-  gastos.unshift({fecha,monto,pablo_amount:pA,categoria,subcategoria,descripcion,tipo:tipoActual,payer:payerActual,rowIndex:newRowIndex});
+  gastos.push({fecha,monto,pablo_amount:pA,categoria,subcategoria,descripcion,tipo:tipoActual,payer:payerActual,rowIndex:newRowIndex});
+  gastos.sort((a,b)=>b.fecha.localeCompare(a.fecha));
   calcularSaldo(); renderHistorial();
   document.getElementById('monto').value='';
   document.getElementById('descripcion').value='';
@@ -969,6 +977,7 @@ async function guardarEdicion() {
     if(!resPut.ok){const errData=await resPut.json().catch(()=>({}));throw new Error(errData.error?.message||'Error HTTP '+resPut.status);}
     // Actualizar array local
     gastos[editIndex]={fecha,monto,pablo_amount:pA,categoria,subcategoria,descripcion,tipo:editTipoActual,payer:editPayerActual,rowIndex};
+    gastos.sort((a,b)=>b.fecha.localeCompare(a.fecha));
     calcularSaldo(); renderHistorial();
     cerrarEdicion();
     showToast('actualizado en Google Sheets ✓');
@@ -994,6 +1003,11 @@ function calcularResumenIngresos() {
   document.getElementById('ing-sub').textContent=ingresos.length
     ?`${ingresos.length} payslip${ingresos.length>1?'s':''} · bruto ${fmt(totalGross)}`
     :'sin ingresos';
+  const lastIncEl=document.getElementById('balance-last-income');
+  if(lastIncEl){
+    const last=ingresos.length?ingresos[0].fecha:'';
+    lastIncEl.textContent=last?'último ingreso: '+formatFecha(last):'último ingreso: —';
+  }
 }
 
 function renderIngresos() {
@@ -1046,7 +1060,8 @@ async function agregarIngreso() {
     showToast('ingreso guardado en Google Sheets ✓');
   } catch(e){showToast('error: '+e.message,true);btn.disabled=false;btn.textContent='registrar ingreso';return;}
   const newRowIndex=ingresos.length+2;
-  ingresos.unshift({fecha,gross,tax,super:superVal,net,category,description,taxPct,superPct,rowIndex:newRowIndex});
+  ingresos.push({fecha,gross,tax,super:superVal,net,category,description,taxPct,superPct,rowIndex:newRowIndex});
+  ingresos.sort((a,b)=>b.fecha.localeCompare(a.fecha));
   calcularResumenIngresos(); renderIngresos();
   ['i-gross','i-tax','i-super','i-net','i-desc'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('i-cat').value='';
