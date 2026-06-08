@@ -170,6 +170,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
       <button class="tab" onclick="showTab('saldo')">Saldo</button>
       <button class="tab" onclick="showTab('ingresos')">Ingresos</button>
       <button class="tab" onclick="showTab('dash')">Dash</button>
+      <button class="tab" onclick="showTab('info')">Info</button>
     </div>
 
     <div id="tab-cargar">
@@ -323,6 +324,31 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
           <table class="dash-table" id="dash-tabla-semanal"></table>
         </div>
       </div>
+    <!-- ─── INFO TAB ─── -->
+    <div id="tab-info" style="display:none;">
+      <div class="card">
+        <div class="balance-label">Últimas cargas</div>
+        <div style="margin-top:0.9rem;display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <div style="font-size:10px;color:#2d8a52;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;">Expenses Pablo</div>
+            <div id="info-last-exp-pablo" style="font-family:'DM Serif Display',Georgia,serif;font-size:18px;color:#E8DCC3;">—</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:#d86a9f;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;">Expenses Julieta</div>
+            <div id="info-last-exp-julieta" style="font-family:'DM Serif Display',Georgia,serif;font-size:18px;color:#E8DCC3;">—</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:#6a9fd8;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;">Incomes Pablo</div>
+            <div id="info-last-inc-pablo" style="font-family:'DM Serif Display',Georgia,serif;font-size:18px;color:#E8DCC3;">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="balance-label">Notas rápidas</div>
+        <textarea id="info-notes" oninput="saveNotes(this.value)" placeholder="escribí algo..." style="width:100%;margin-top:0.75rem;min-height:160px;background:#141412;border:1px solid #2d6b4a;border-radius:3px;color:#E8DCC3;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5;padding:10px;resize:vertical;outline:none;"></textarea>
+      </div>
+    </div>
+
     </div>
   </div>
 
@@ -773,6 +799,10 @@ async function agregarGasto() {
     if(!resAdd.ok){const errData=await resAdd.json().catch(()=>({}));throw new Error(errData.error?.message||'Error HTTP '+resAdd.status);}
     showToast('guardado en Google Sheets ✓');
   } catch(e){showToast('error: '+e.message,true);btn.disabled=false;btn.textContent='registrar gasto';return;}
+  // Tracking de última carga
+  const now=new Date().toISOString();
+  if(tipoActual==='pablo'||tipoActual==='compartido') localStorage.setItem('vgn_last_exp_pablo',now);
+  if(tipoActual==='julieta'||tipoActual==='compartido') localStorage.setItem('vgn_last_exp_julieta',now);
   // El nuevo gasto va al final del sheet, rowIndex = gastos.length + 2
   const newRowIndex=gastos.length+2;
   gastos.push({fecha,monto,pablo_amount:pA,categoria,subcategoria,descripcion,tipo:tipoActual,payer:payerActual,rowIndex:newRowIndex});
@@ -1063,6 +1093,7 @@ async function agregarIngreso() {
     if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||'Error HTTP '+res.status);}
     showToast('ingreso guardado en Google Sheets ✓');
   } catch(e){showToast('error: '+e.message,true);btn.disabled=false;btn.textContent='registrar ingreso';return;}
+  localStorage.setItem('vgn_last_inc_pablo',new Date().toISOString());
   const newRowIndex=ingresos.length+2;
   ingresos.push({fecha,gross,tax,super:superVal,net,category,description,taxPct,superPct,rowIndex:newRowIndex});
   ingresos.sort((a,b)=>b.fecha.localeCompare(a.fecha));
@@ -1283,57 +1314,91 @@ function renderDashVision() {
     }]
   });
 
-  // ── Donut: gastos como % del ingreso neto ───────────────────────────────────
+  // ── Donut: promedio semanal por subcategoría como % del ingreso ─────────────
   const BUCKETS=[
-    {label:'Rent',      color:'#c0614a', match:g=>/(rent)/i.test(g.categoria)||/(rent)/i.test(g.subcategoria)},
-    {label:'Groceries', color:'#4a8a5a', match:g=>/(grocer|supermarket|coles|woolworth|aldi|iga)/i.test(g.categoria)||/(grocer|supermarket|coles|woolworth|aldi|iga)/i.test(g.subcategoria)},
-    {label:'Fuel',      color:'#c09a30', match:g=>/(fuel|petrol|gas station)/i.test(g.subcategoria)||/(fuel|petrol)/i.test(g.categoria)},
-    {label:'Phone',     color:'#4a70b0', match:g=>/(phone|mobile|telstra|optus|vodafone)/i.test(g.categoria)||/(phone|mobile|telstra|optus|vodafone)/i.test(g.subcategoria)},
-    {label:'Subscriptions',color:'#7a4ab0',match:g=>/(subscri|netflix|spotify|disney|amazon prime|youtube)/i.test(g.categoria)||/(subscri|netflix|spotify|disney|amazon prime|youtube)/i.test(g.subcategoria)},
-    {label:'Health',    color:'#4aaaa0', match:g=>/(health|medical|pharmacy|doctor|dentist|hospital)/i.test(g.categoria)||/(health|medical|pharmacy|doctor|dentist|hospital)/i.test(g.subcategoria)},
-    {label:'Alcohol',   color:'#c07040', match:g=>/(alcohol|beer|wine|liquor|bottle shop|dan murphy)/i.test(g.categoria)||/(alcohol|beer|wine|liquor|bottle shop|dan murphy)/i.test(g.subcategoria)},
-    {label:'Alternaleaf',color:'#5a9a3a',match:g=>/(alternaleaf|cannabis|weed)/i.test(g.categoria)||/(alternaleaf|cannabis|weed)/i.test(g.subcategoria)},
+    {label:'Rent',        color:'#c0614a', match:g=>/^rent$/i.test((g.subcategoria||'').trim())||/^rent$/i.test((g.categoria||'').trim())},
+    {label:'Groceries',   color:'#4a8a5a', match:g=>/^groceries$/i.test((g.subcategoria||'').trim())||/^groceries$/i.test((g.categoria||'').trim())},
+    {label:'Fuel',        color:'#c09a30', match:g=>/^fuel$/i.test((g.subcategoria||'').trim())||/^fuel$/i.test((g.categoria||'').trim())},
+    {label:'Phone',       color:'#4a70b0', match:g=>/^phone$/i.test((g.subcategoria||'').trim())||/^phone$/i.test((g.categoria||'').trim())},
+    {label:'Subscriptions',color:'#7a4ab0',match:g=>/^subscriptions?$/i.test((g.subcategoria||'').trim())||/^subscriptions?$/i.test((g.categoria||'').trim())},
+    {label:'Health',      color:'#4aaaa0', match:g=>/^health$/i.test((g.subcategoria||'').trim())||/^health$/i.test((g.categoria||'').trim())},
+    {label:'Alcohol',     color:'#c07040', match:g=>/^alcohol$/i.test((g.subcategoria||'').trim())||/^alcohol$/i.test((g.categoria||'').trim())},
+    {label:'Alternaleaf', color:'#5a9a3a', match:g=>/^alternaleaf$/i.test((g.subcategoria||'').trim())||/^alternaleaf$/i.test((g.categoria||'').trim())},
+    {label:'Tramites',    color:'#8a7a5a', match:g=>/^tr[aá]mites?$/i.test((g.subcategoria||'').trim())||/^tr[aá]mites?$/i.test((g.categoria||'').trim())},
   ];
+  // Semanas con algún gasto registrado
+  const weekSetD=new Set(fG.map(g=>{const d=new Date(g.fecha);return `${d.getFullYear()}-W${String(getISOWeek(d)).padStart(2,'0')}`;}));
+  const numWeeksD=Math.max(1,weekSetD.size);
   const totalIncome=fI.reduce((s,g)=>s+getInNet(g),0);
-  const bucketAmounts=BUCKETS.map(b=>({label:b.label,color:b.color,amount:fG.filter(b.match).reduce((s,g)=>s+(g.pablo_amount??parseFloat(g.monto)),0)}));
-  const bucketTotal=bucketAmounts.reduce((s,b)=>s+b.amount,0);
+  const avgWeeklyIncome=totalIncome/numWeeksD;
   const expenseTotal=fG.reduce((s,g)=>s+(g.pablo_amount??parseFloat(g.monto)),0);
-  const otrosAmount=Math.max(0,expenseTotal-bucketTotal);
-  const pieLabels=[...bucketAmounts.map(b=>b.label),'Otros'];
-  const pieData=[...bucketAmounts.map(b=>+b.amount.toFixed(2)),+otrosAmount.toFixed(2)];
-  const pieColors=[...bucketAmounts.map(b=>b.color),'#555'];
+  const expenseTotalWeekly=expenseTotal/numWeeksD;
+  const bucketWeekly=BUCKETS.map(b=>({label:b.label,color:b.color,amount:fG.filter(b.match).reduce((s,g)=>s+(g.pablo_amount??parseFloat(g.monto)),0)/numWeeksD}));
+  const bucketTotalWeekly=bucketWeekly.reduce((s,b)=>s+b.amount,0);
+  const otrosWeekly=Math.max(0,expenseTotalWeekly-bucketTotalWeekly);
+  const pieLabels=[...bucketWeekly.map(b=>b.label),'Otros'];
+  const pieData=[...bucketWeekly.map(b=>+b.amount.toFixed(2)),+otrosWeekly.toFixed(2)];
+  const pieColors=[...bucketWeekly.map(b=>b.color),'#555'];
   if(chartPieIncome) chartPieIncome.destroy();
   chartPieIncome=new Chart(document.getElementById('chart-pie-income'),{
     type:'doughnut',
     data:{labels:pieLabels,datasets:[{data:pieData,backgroundColor:pieColors,borderColor:'#141412',borderWidth:2,hoverBorderWidth:3}]},
     options:{
-      responsive:true,maintainAspectRatio:false,cutout:'55%',
+      responsive:true,maintainAspectRatio:false,cutout:'48%',
       plugins:{
         legend:{display:true,position:'bottom',labels:{color:'#E8DCC3',font:{size:10},padding:8,boxWidth:10}},
         tooltip:{callbacks:{
           label:ctx=>{
             const amt=ctx.parsed;
-            const pctInc=totalIncome>0?(amt/totalIncome*100).toFixed(1):'—';
-            const pctEgr=expenseTotal>0?(amt/expenseTotal*100).toFixed(1):'—';
-            return ` $${amt.toFixed(0)} · ${pctInc}% del ingreso · ${pctEgr}% del gasto`;
+            const pctInc=avgWeeklyIncome>0?(amt/avgWeeklyIncome*100).toFixed(1):'—';
+            return ` $${amt.toFixed(0)}/sem · ${pctInc}% del ingreso`;
           }
         }}
       }
     },
     plugins:[{
+      id:'pieSliceLabels',
+      afterDatasetsDraw(chart){
+        const {ctx}=chart;
+        const total=chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+        if(!total) return;
+        chart.data.datasets.forEach((ds,di)=>{
+          const meta=chart.getDatasetMeta(di);
+          meta.data.forEach((arc,i)=>{
+            const value=ds.data[i];
+            if(!value) return;
+            const slicePct=value/total*100;
+            if(slicePct<3.5) return;
+            const {startAngle,endAngle,outerRadius,innerRadius,x,y}=arc;
+            const midAngle=(startAngle+endAngle)/2;
+            const r=(outerRadius+innerRadius)/2;
+            const lx=x+r*Math.cos(midAngle);
+            const ly=y+r*Math.sin(midAngle);
+            const pctInc=avgWeeklyIncome>0?(value/avgWeeklyIncome*100).toFixed(0):'?';
+            ctx.save();
+            ctx.font="bold 11px 'DM Sans',sans-serif";
+            ctx.fillStyle='rgba(255,255,255,0.95)';
+            ctx.textAlign='center';
+            ctx.textBaseline='middle';
+            ctx.fillText(pctInc+'%',lx,ly);
+            ctx.restore();
+          });
+        });
+      }
+    },{
       id:'centerText',
       beforeDraw(chart){
         if(!totalIncome) return;
         const {ctx,chartArea:{top,bottom,left,right}}=chart;
-        const cx=(left+right)/2, cy=(top+bottom)/2;
-        const savings=totalIncome-expenseTotal;
-        const savingsPct=totalIncome>0?(savings/totalIncome*100).toFixed(0):0;
+        const cx=(left+right)/2,cy=(top+bottom)/2;
+        const savings=avgWeeklyIncome-expenseTotalWeekly;
+        const savingsPct=avgWeeklyIncome>0?(savings/avgWeeklyIncome*100).toFixed(0):0;
         ctx.save();
-        ctx.font="500 11px 'DM Sans',sans-serif";
+        ctx.font="500 10px 'DM Sans',sans-serif";
         ctx.fillStyle='#555';
         ctx.textAlign='center';
         ctx.textBaseline='middle';
-        ctx.fillText('ahorro',cx,cy-12);
+        ctx.fillText('ahorro/sem',cx,cy-12);
         ctx.font="400 18px 'DM Serif Display',serif";
         ctx.fillStyle=savings>=0?'#4ade80':'#e07060';
         ctx.fillText((savings>=0?'+':'')+savingsPct+'%',cx,cy+8);
@@ -1611,9 +1676,26 @@ async function guardarEdicionIngreso() {
 }
 
 function showTab(tab) {
-  ['cargar','historial','saldo','ingresos','dash'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===tab?'block':'none';});
-  document.querySelectorAll('.tab').forEach((btn,i)=>{btn.className='tab'+((['cargar','historial','saldo','ingresos','dash'][i])===tab?' active':'');});
+  ['cargar','historial','saldo','ingresos','dash','info'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===tab?'block':'none';});
+  document.querySelectorAll('.tab').forEach((btn,i)=>{btn.className='tab'+((['cargar','historial','saldo','ingresos','dash','info'][i])===tab?' active':'');});
   if(tab==='dash') showDashTab('vision');
+  if(tab==='info') loadInfoTab();
+}
+
+function loadInfoTab(){
+  function fmtTs(ts){
+    if(!ts) return '—';
+    const d=new Date(ts);
+    return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  }
+  document.getElementById('info-last-exp-pablo').textContent=fmtTs(localStorage.getItem('vgn_last_exp_pablo'));
+  document.getElementById('info-last-exp-julieta').textContent=fmtTs(localStorage.getItem('vgn_last_exp_julieta'));
+  document.getElementById('info-last-inc-pablo').textContent=fmtTs(localStorage.getItem('vgn_last_inc_pablo'));
+  document.getElementById('info-notes').value=localStorage.getItem('vgn_notes')||'';
+}
+
+function saveNotes(val){
+  localStorage.setItem('vgn_notes',val);
 }
 </script>
 </body>
