@@ -154,6 +154,103 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 .dash-cat-chip{font-size:10px;padding:4px 9px;border-radius:2px;border:1px solid #2d6b4a;background:#1a3d28;color:#4ade80;font-family:'DM Sans',sans-serif;letter-spacing:1px;cursor:pointer;transition:all 0.15s;text-transform:none;}
 .dash-cat-chip.excluded{background:transparent;border-color:#333;color:#444;text-decoration:line-through;}
 .dash-cat-chip:hover{border-color:#4db87a;}
+
+/* ═══════════════════════════════════════════════════════
+   DESKTOP LAYOUT  ≥ 768px
+   ═══════════════════════════════════════════════════════ */
+@media (min-width: 768px) {
+  /* ── App shell ── */
+  .app {
+    max-width: 1200px;
+    padding: 0 2rem 2rem 0;
+  }
+
+  /* ── Header: horizontal bar ── */
+  .header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    text-align: left;
+    padding: 1rem 1.5rem 1rem 1.75rem;
+    margin-bottom: 0;
+    border-bottom: 1px solid #2d6b4a;
+  }
+  .header-logo { width: 34px; height: 34px; margin: 0; border-radius: 8px; }
+  .header h1 { font-size: 20px; letter-spacing: 4px; }
+  .header-sub { font-size: 10px; margin-top: 0; }
+  .status-area { position: static; margin-left: auto; align-items: flex-end; }
+
+  /* ── Main content: sidebar + content ── */
+  #main-content {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    min-height: calc(100vh - 60px);
+  }
+
+  /* ── Sidebar nav ── */
+  .bottom-nav {
+    position: sticky;
+    top: 0;
+    width: 190px;
+    min-width: 190px;
+    height: calc(100vh - 60px);
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    border-top: none;
+    border-right: 1px solid #2d6b4a;
+    max-width: none;
+    transform: none;
+    padding: 1.5rem 0 1rem;
+    overflow-y: auto;
+  }
+  .nav-item {
+    flex-direction: row;
+    padding: 11px 22px;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    gap: 12px;
+    justify-content: flex-start;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-item svg { width: 17px; height: 17px; }
+
+  /* ── Content area ── */
+  .content-area {
+    flex: 1;
+    min-width: 0;
+    padding: 1.5rem 1.75rem 2rem;
+    overflow-y: visible;
+  }
+
+  /* ── Modals: centradas en viewport ── */
+  .modal-overlay { align-items: center; justify-content: center; }
+  .modal-box { max-width: 460px; width: 100%; }
+
+  /* ── Dashboard Visión: 2 columnas ── */
+  #dash-vision {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  /* Ítems que ocupan las 2 columnas */
+  #dash-vision .dash-kpi-grid,
+  #dash-vision > .dash-subtab-bar {
+    grid-column: 1 / -1;
+  }
+
+  /* ── Dashboard Semanal: charts pares en 2 columnas ── */
+  .dash-charts-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .dash-charts-pair .chart-card {
+    margin-bottom: 0;
+  }
+}
 </style>
 </head>
 <body>
@@ -200,6 +297,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
       </button>
     </nav>
 
+    <div class="content-area">
     <div id="tab-cargar" style="display:none;">
       <div class="card">
         <div class="balance-label">Saldo actual</div>
@@ -365,13 +463,15 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
           <div class="dash-cat-chips" id="dash-cat-chips"></div>
         </div>
         <div class="dash-kpi-grid" id="dash-kpi-semanales"></div>
-        <div class="chart-card">
-          <div class="chart-title">Promedio acumulado semanal</div>
-          <div style="position:relative;height:200px;"><canvas id="chart-line-semanal"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-title">Ingresos y egresos por semana</div>
-          <div style="position:relative;height:200px;"><canvas id="chart-bar-semanal"></canvas></div>
+        <div class="dash-charts-pair">
+          <div class="chart-card">
+            <div class="chart-title">Promedio acumulado semanal</div>
+            <div style="position:relative;height:200px;"><canvas id="chart-line-semanal"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Ingresos y egresos por semana</div>
+            <div style="position:relative;height:200px;"><canvas id="chart-bar-semanal"></canvas></div>
+          </div>
         </div>
         <div class="chart-card">
           <div class="chart-title">Evolución semanal · categorías clave</div>
@@ -408,6 +508,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
       </div>
     </div>
 
+    </div><!-- /content-area -->
   </div>
 
   <div id="connecting-screen" class="connecting-screen">— iniciando —</div>
@@ -797,7 +898,7 @@ async function iniciar() {
     await initSheet(token);
     await loadExistingData(token);
     document.getElementById('connecting-screen').style.display='none';
-    document.getElementById('main-content').style.display='block';
+    document.getElementById('main-content').style.display=window.matchMedia('(min-width:768px)').matches?'flex':'block';
     setStatus(true,'online');
   } catch(e) {
     document.getElementById('connecting-screen').style.display='none';
