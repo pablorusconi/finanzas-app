@@ -162,7 +162,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
   /* ── App shell ── */
   .app {
     max-width: 1200px;
-    padding: 0 2rem 2rem 0;
+    padding: 0;
   }
 
   /* ── Header: horizontal bar ── */
@@ -172,48 +172,58 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
     align-items: center;
     gap: 14px;
     text-align: left;
-    padding: 1rem 1.5rem 1rem 1.75rem;
+    padding: 1rem 1.5rem;
     margin-bottom: 0;
     border-bottom: 1px solid #2d6b4a;
   }
   .header-logo { width: 34px; height: 34px; margin: 0; border-radius: 8px; }
   .header h1 { font-size: 20px; letter-spacing: 4px; }
   .header-sub { font-size: 10px; margin-top: 0; }
-  .status-area { position: static; margin-left: auto; align-items: flex-end; }
+  .status-area { position: static; margin-left: auto; }
 
   /* ── Main content: sidebar + content ── */
   #main-content {
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
-    min-height: calc(100vh - 60px);
+    align-items: stretch;
+    min-height: calc(100vh - 62px);
   }
 
-  /* ── Sidebar nav ── */
+  /* ── Sidebar nav: sacar todo el fixed/centered del mobile ── */
   .bottom-nav {
-    position: sticky;
-    top: 0;
-    width: 190px;
-    min-width: 190px;
-    height: calc(100vh - 60px);
+    /* Override mobile fixed positioning */
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    top: auto !important;
+    transform: none !important;
+    /* Sidebar sizing */
+    flex-shrink: 0;
+    width: 180px;
+    max-width: 180px;
+    height: auto;
+    min-height: 100%;
+    /* Flex layout vertical */
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
+    /* Borders */
     border-top: none;
     border-right: 1px solid #2d6b4a;
-    max-width: none;
-    transform: none;
-    padding: 1.5rem 0 1rem;
+    border-bottom: none;
+    border-left: none;
+    /* Spacing */
+    padding: 1.5rem 0;
     overflow-y: auto;
   }
   .nav-item {
     flex-direction: row;
-    padding: 11px 22px;
+    padding: 11px 20px;
     font-size: 11px;
     letter-spacing: 1.5px;
     gap: 12px;
     justify-content: flex-start;
-    -webkit-tap-highlight-color: transparent;
   }
   .nav-item svg { width: 17px; height: 17px; }
 
@@ -221,8 +231,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
   .content-area {
     flex: 1;
     min-width: 0;
-    padding: 1.5rem 1.75rem 2rem;
-    overflow-y: visible;
+    padding: 1.5rem 2rem 2rem;
   }
 
   /* ── Modals: centradas en viewport ── */
@@ -235,9 +244,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
   }
-  /* Ítems que ocupan las 2 columnas */
-  #dash-vision .dash-kpi-grid,
-  #dash-vision > .dash-subtab-bar {
+  #dash-vision .dash-kpi-grid {
     grid-column: 1 / -1;
   }
 
