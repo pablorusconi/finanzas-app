@@ -147,6 +147,13 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 .dash-period-btn{flex:1;padding:8px 0;font-size:10px;text-align:center;cursor:pointer;border:none;border-right:1px solid #2d6b4a;background:transparent;color:#555;font-family:'DM Sans',sans-serif;letter-spacing:1px;text-transform:uppercase;transition:all 0.15s;}
 .dash-period-btn:last-child{border-right:none;}
 .dash-period-btn.active{background:#2d6b4a;color:#E8DCC3;}
+/* ─── Category filter chips ─── */
+.dash-cat-filter{margin-bottom:1rem;}
+.dash-cat-filter-label{font-size:10px;color:#555;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.dash-cat-chips{display:flex;flex-wrap:wrap;gap:5px;}
+.dash-cat-chip{font-size:10px;padding:4px 9px;border-radius:2px;border:1px solid #2d6b4a;background:#1a3d28;color:#4ade80;font-family:'DM Sans',sans-serif;letter-spacing:1px;cursor:pointer;transition:all 0.15s;text-transform:none;}
+.dash-cat-chip.excluded{background:transparent;border-color:#333;color:#444;text-decoration:line-through;}
+.dash-cat-chip:hover{border-color:#4db87a;}
 </style>
 </head>
 <body>
@@ -352,6 +359,11 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
           <button class="dash-period-btn" id="dash-period-last-month" onclick="setPeriod('last-month')">Último mes</button>
           <button class="dash-period-btn" id="dash-period-last-3months" onclick="setPeriod('last-3months')">Últ. 3 meses</button>
         </div>
+        <!-- Filtro de categorías -->
+        <div class="dash-cat-filter">
+          <div class="dash-cat-filter-label">Incluir categorías en promedios</div>
+          <div class="dash-cat-chips" id="dash-cat-chips"></div>
+        </div>
         <div class="dash-kpi-grid" id="dash-kpi-semanales"></div>
         <div class="chart-card">
           <div class="chart-title">Promedio acumulado semanal</div>
@@ -360,6 +372,10 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
         <div class="chart-card">
           <div class="chart-title">Ingresos y egresos por semana</div>
           <div style="position:relative;height:200px;"><canvas id="chart-bar-semanal"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Evolución semanal · categorías clave</div>
+          <div style="position:relative;height:240px;"><canvas id="chart-evolucion-cats"></canvas></div>
         </div>
         <div class="chart-card">
           <div class="chart-title">Promedio semanal egresos por categoría</div>
@@ -529,6 +545,7 @@ let searchQuery='', activeFilter='todos', historialTypeFilter='all';
 // ─── Dashboard state ──────────────────────────────────────────────────────────
 let selectedYears=new Set(['2026']);
 let selectedPeriod='all';
+let excludedCats=new Set(['Tramites']);
 
 function toggleYear(y) {
   if(selectedYears.has(y)){if(selectedYears.size>1)selectedYears.delete(y);}
@@ -545,6 +562,28 @@ function setPeriod(p){
   ['all','last-month','last-3months'].forEach(pp=>{
     const b=document.getElementById('dash-period-'+pp);
     if(b)b.className='dash-period-btn'+(pp===p?' active':'');
+  });
+  renderDashSemanales();
+}
+
+function initCatFilterChips(){
+  const wrap=document.getElementById('dash-cat-chips');
+  if(!wrap||wrap.children.length>0) return; // ya inicializado
+  Object.keys(categorias).forEach(cat=>{
+    const btn=document.createElement('button');
+    btn.className='dash-cat-chip'+(excludedCats.has(cat)?' excluded':'');
+    btn.dataset.cat=cat;
+    btn.textContent=cat;
+    btn.onclick=()=>toggleCatFilter(cat);
+    wrap.appendChild(btn);
+  });
+}
+
+function toggleCatFilter(cat){
+  if(excludedCats.has(cat)) excludedCats.delete(cat);
+  else excludedCats.add(cat);
+  document.querySelectorAll('.dash-cat-chip').forEach(chip=>{
+    chip.className='dash-cat-chip'+(excludedCats.has(chip.dataset.cat)?' excluded':'');
   });
   renderDashSemanales();
 }
@@ -1221,7 +1260,7 @@ async function agregarIngreso() {
 
 // ─── DASHBOARDS ─────────────────────────────────────────────────────────────────
 
-let chartLineMensual=null, chartBarCat=null, chartLineSemanal=null, chartBarSemanal=null, chartPieIncome=null;
+let chartLineMensual=null, chartBarCat=null, chartLineSemanal=null, chartBarSemanal=null, chartPieIncome=null, chartEvolucionCats=null;
 const MNAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
 function showDashTab(tab) {
@@ -1230,7 +1269,7 @@ function showDashTab(tab) {
     document.getElementById('dsubtab-'+t).className='dash-subtab'+(t===tab?' active':'');
   });
   if(tab==='vision') renderDashVision();
-  else if(tab==='semanales') renderDashSemanales();
+  else if(tab==='semanales') { initCatFilterChips(); renderDashSemanales(); }
 }
 
 function renderActiveDashTab() {
@@ -1563,7 +1602,7 @@ function renderDashSemanales() {
   const YR_EG={'2024':'#8a6ad8','2025':'#d4a020','2026':'#e07060'};
   const yearData={};
   years.forEach(yr=>{
-    let gY=allG.filter(g=>g.tipo!=='transferencia'&&g.tipo!=='julieta'&&g.fecha.startsWith(yr));
+    let gY=allG.filter(g=>g.tipo!=='transferencia'&&g.tipo!=='julieta'&&g.fecha.startsWith(yr)&&!excludedCats.has(g.categoria));
     let iY=allI.filter(g=>g.fecha.startsWith(yr));
     gY=filterByPeriod(gY,period);
     iY=filterByPeriod(iY,period);
@@ -1678,6 +1717,64 @@ function renderDashSemanales() {
         y:{ticks:{color:'#9a8a6a',font:{size:9},callback:v=>'$'+v.toFixed(0)},grid:{color:'#252520'},border:{color:'#2d6b4a'}}
       }}
   });
+
+  // ── Evolución semanal · 6 categorías clave ───────────────────────────────────
+  const EVOL_CATS=[
+    {label:'Rent',              color:'#c0614a', match:g=>g.categoria==='Rent'},
+    {label:'Fuel',              color:'#c09a30', match:g=>g.categoria==='Car Expenses'&&g.subcategoria==='Fuel'},
+    {label:'Groceries',         color:'#4a8a5a', match:g=>g.categoria==='Groceries'},
+    {label:'Wd and Misc',       color:'#5a9a3a', match:g=>g.categoria==='Wd and Misc'},
+    {label:'Subscriptions',     color:'#7a4ab0', match:g=>g.categoria==='Subscriptions'},
+    {label:'Rest. & Cafes',     color:'#d47040', match:g=>g.categoria==='Dining & Entertainment'&&g.subcategoria==='Restaurants & Cafes'},
+  ];
+  // Construir datasets: para cada año seleccionado, para cada categoría clave
+  // Eje X: semanas (wNums ya calculado arriba)
+  const evolDatasets=[];
+  const multiYearEvol=years.length>1;
+  years.forEach(yr=>{
+    const gY_all=allG.filter(g=>g.tipo!=='transferencia'&&g.tipo!=='julieta'&&g.fecha.startsWith(yr));
+    const gY_period=filterByPeriod(gY_all,period);
+    EVOL_CATS.forEach(ec=>{
+      const wkMap={};
+      gY_period.filter(ec.match).forEach(g=>{
+        const d=new Date(g.fecha),wk=`${d.getFullYear()}-W${String(getISOWeek(d)).padStart(2,'0')}`;
+        wkMap[wk]=(wkMap[wk]||0)+(g.pablo_amount??parseFloat(g.monto));
+      });
+      const data=wNums.map(wn=>{
+        const wk=`${yr}-W${String(wn).padStart(2,'0')}`;
+        return wkMap[wk]!==undefined?+wkMap[wk].toFixed(2):null;
+      });
+      // Solo agregar el dataset si tiene algún dato
+      if(data.some(v=>v!==null)){
+        evolDatasets.push({
+          label:multiYearEvol?`${ec.label} '${yr.slice(2)}`:ec.label,
+          data,
+          borderColor:ec.color,
+          backgroundColor:'transparent',
+          borderWidth:2,
+          pointRadius:3,
+          pointHoverRadius:5,
+          tension:0.25,
+          fill:false,
+          spanGaps:false
+        });
+      }
+    });
+  });
+  if(chartEvolucionCats) chartEvolucionCats.destroy();
+  const evolCanvas=document.getElementById('chart-evolucion-cats');
+  if(evolCanvas){
+    chartEvolucionCats=new Chart(evolCanvas,{
+      type:'line',
+      data:{labels:wNums.map(n=>'S'+n),datasets:evolDatasets},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:true,labels:{color:'#E8DCC3',font:{size:9},boxWidth:8,padding:6,usePointStyle:true}}},
+        scales:{
+          x:{ticks:{color:'#9a8a6a',font:{size:9}},grid:{color:'#1e1e18'},border:{color:'#2d6b4a'}},
+          y:{ticks:{color:'#9a8a6a',font:{size:9},callback:v=>'$'+v.toFixed(0)},grid:{color:'#252520'},border:{color:'#2d6b4a'}}
+        }}
+    });
+  }
 
   // ── Category table (one column per year) ─────────────────────────────────────
   const allCats=new Set();
