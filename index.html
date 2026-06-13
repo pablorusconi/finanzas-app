@@ -510,6 +510,10 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
         </div>
       </div>
       <div class="card">
+        <div class="balance-label">Gastos Fijos</div>
+        <div id="fixed-expenses-list" style="margin-top:0.9rem;"></div>
+      </div>
+      <div class="card">
         <div class="balance-label">Notas rápidas</div>
         <textarea id="info-notes" oninput="saveNotes(this.value)" placeholder="escribí algo..." style="width:100%;margin-top:0.75rem;min-height:160px;background:#141412;border:1px solid #2d6b4a;border-radius:3px;color:#E8DCC3;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5;padding:10px;resize:vertical;outline:none;"></textarea>
       </div>
@@ -627,6 +631,7 @@ const categorias = {
   "Car Expenses": ["Fuel","Allianz","Repair and Maintenance","Registration","Others"],
   "Clothing": ["Clothing"],
   "Dining & Entertainment": ["Restaurants & Cafes","Party","Events"],
+  "Eidico": ["Cuota"],
   "Education": ["Courses","Books","Others"],
   "Groceries": ["Supermarket","Alcohol"],
   "Health": ["Health Insurance","Others"],
@@ -2025,6 +2030,80 @@ function loadInfoTab(){
   document.getElementById('info-last-exp-julieta').textContent=fmtTs(localStorage.getItem('vgn_last_exp_julieta'));
   document.getElementById('info-last-inc-pablo').textContent=fmtTs(localStorage.getItem('vgn_last_inc_pablo'));
   document.getElementById('info-notes').value=localStorage.getItem('vgn_notes')||'';
+  renderGastosFijos();
+}
+
+function renderGastosFijos(){
+  const FIJOS=[
+    {
+      nombre:'Rent',
+      freq:'weekly',
+      freqLabel:'semanal',
+      match: g => g.categoria==='Rent' && g.subcategoria==='Rent'
+    },
+    {
+      nombre:'Phone',
+      freq:'monthly',
+      freqLabel:'mensual',
+      match: g => g.categoria==='Phone'
+    },
+    {
+      nombre:'Subscriptions',
+      freq:'monthly',
+      freqLabel:'mensual',
+      match: g => g.categoria==='Subscriptions'
+    },
+    {
+      nombre:'Eidico',
+      freq:'monthly',
+      freqLabel:'mensual',
+      match: g => g.categoria==='Eidico'
+    },
+    {
+      nombre:'Health Insurance',
+      freq:'monthly',
+      freqLabel:'mensual',
+      match: g => g.categoria==='Health' && g.subcategoria==='Health Insurance'
+    }
+  ];
+
+  const now=new Date();
+  // Semana actual: lunes a domingo
+  const dow=(now.getDay()+6)%7; // 0=lunes, 6=domingo
+  const monDate=new Date(now); monDate.setDate(now.getDate()-dow); monDate.setHours(0,0,0,0);
+  const sunDate=new Date(monDate); sunDate.setDate(monDate.getDate()+6);
+  const weekStart=monDate.toISOString().slice(0,10);
+  const weekEnd=sunDate.toISOString().slice(0,10);
+  // Mes actual
+  const monthStr=now.toISOString().slice(0,7);
+
+  const list=document.getElementById('fixed-expenses-list');
+  list.innerHTML='';
+
+  FIJOS.forEach((gf,idx)=>{
+    let found=null;
+    if(gf.freq==='weekly'){
+      found=gastos.find(g=>g.fecha>=weekStart && g.fecha<=weekEnd && gf.match(g));
+    } else {
+      found=gastos.find(g=>g.fecha.startsWith(monthStr) && gf.match(g));
+    }
+    const ok=!!found;
+
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:10px 0;'+(idx<FIJOS.length-1?'border-bottom:1px solid #1e1e1a;':'');
+
+    const left=document.createElement('div');
+    left.innerHTML=`<div style="font-family:'DM Serif Display',Georgia,serif;font-size:16px;color:#E8DCC3;">${gf.nombre}</div>`+
+      `<div style="font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-top:2px;">${gf.freqLabel}${found?' · '+found.fecha:''}</div>`;
+
+    const right=document.createElement('div');
+    right.style.cssText='font-size:22px;line-height:1;';
+    right.textContent=ok?'✅':'❌';
+
+    row.appendChild(left);
+    row.appendChild(right);
+    list.appendChild(row);
+  });
 }
 
 function saveNotes(val){
