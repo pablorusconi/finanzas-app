@@ -631,7 +631,7 @@ const categorias = {
   "Car Expenses": ["Fuel","Allianz","Repair and Maintenance","Registration","Others"],
   "Clothing": ["Clothing"],
   "Dining & Entertainment": ["Restaurants & Cafes","Party","Events"],
-  "Eidico": ["Cuota"],
+  "Eidico": ["Eidico"],
   "Education": ["Courses","Books","Others"],
   "Groceries": ["Supermarket","Alcohol"],
   "Health": ["Health Insurance","Others"],
@@ -1831,7 +1831,7 @@ function renderDashSemanales() {
       }}
   });
 
-  // ── Promedio móvil 12 semanas · 6 categorías clave ──────────────────────────
+  // ── Evolución anual · 6 categorías clave (W01 → semana actual) ──────────────
   const EVOL_CATS=[
     {label:'Rent',          color:'#c0614a', match:g=>g.categoria==='Rent'},
     {label:'Fuel',          color:'#c09a30', match:g=>g.categoria==='Car Expenses'&&g.subcategoria==='Fuel'},
@@ -1840,45 +1840,46 @@ function renderDashSemanales() {
     {label:'Subscriptions', color:'#7a4ab0', match:g=>g.categoria==='Subscriptions'},
     {label:'Rest. & Cafes', color:'#d47040', match:g=>g.categoria==='Dining & Entertainment'&&g.subcategoria==='Restaurants & Cafes'},
   ];
-  const ROLLING_WINDOW=12;
+  // Rango de semanas: siempre W01 hasta la semana actual del año corriente
+  // (para años pasados completos, hasta la semana 52)
+  const _nowEvol=new Date();
+  const _curYrStr=_nowEvol.getFullYear().toString();
+  const _curWkNum=getISOWeek(_nowEvol);
+  const _maxWkEvol=Math.max(...years.map(yr=>yr===_curYrStr?_curWkNum:52));
+  const wNumsEvol=Array.from({length:_maxWkEvol},(_,i)=>i+1);
+
   const evolDatasets=[];
   const multiYearEvol=years.length>1;
   years.forEach(yr=>{
-    // Usamos todos los gastos del año (sin filtrar por período) para que el promedio
-    // móvil tenga contexto de semanas anteriores aunque el período sea "último mes"
+    // Usamos TODOS los gastos del año (sin filtrar por período)
     const gY_all=allG.filter(g=>g.tipo!=='transferencia'&&g.tipo!=='julieta'&&g.fecha.startsWith(yr));
+    // Semana máxima para este año
+    const yrMaxWk=yr===_curYrStr?_curWkNum:52;
+    const wNumsYr=wNumsEvol.filter(w=>w<=yrMaxWk);
     EVOL_CATS.forEach(ec=>{
-      // Mapa de gasto real por semana (0 si no hay gasto esa semana)
       const wkMap={};
       gY_all.filter(ec.match).forEach(g=>{
         const d=new Date(g.fecha),wk=`${d.getFullYear()}-W${String(getISOWeek(d)).padStart(2,'0')}`;
         wkMap[wk]=(wkMap[wk]||0)+(g.pablo_amount??parseFloat(g.monto));
       });
-      // Datos brutos: 0 para semanas sin gasto (no null, para que entren en el promedio)
-      const raw=wNums.map(wn=>{
+      // Gasto real por semana (0 si no hubo gasto)
+      const raw=wNumsEvol.map(wn=>{
+        if(wn>yrMaxWk)return null;
         const wk=`${yr}-W${String(wn).padStart(2,'0')}`;
         return wkMap[wk]||0;
       });
-      // Calcular promedio móvil de ROLLING_WINDOW semanas
-      const data=raw.map((_,i)=>{
-        const start=Math.max(0,i-ROLLING_WINDOW+1);
-        const slice=raw.slice(start,i+1);
-        const avg=slice.reduce((s,v)=>s+v,0)/slice.length;
-        return +avg.toFixed(2);
-      });
-      // Solo mostrar si la categoría tiene algún gasto en el año
-      if(raw.some(v=>v>0)){
+      if(raw.some(v=>v!==null&&v>0)){
         evolDatasets.push({
           label:multiYearEvol?`${ec.label} '${yr.slice(2)}`:ec.label,
-          data,
+          data:raw,
           borderColor:ec.color,
           backgroundColor:'transparent',
-          borderWidth:2.5,
-          pointRadius:0,        // sin puntos → curva limpia
+          borderWidth:2,
+          pointRadius:0,
           pointHoverRadius:4,
-          tension:0.4,
+          tension:0.3,
           fill:false,
-          spanGaps:true
+          spanGaps:false
         });
       }
     });
@@ -1888,7 +1889,7 @@ function renderDashSemanales() {
   if(evolCanvas){
     chartEvolucionCats=new Chart(evolCanvas,{
       type:'line',
-      data:{labels:wNums.map(n=>'S'+n),datasets:evolDatasets},
+      data:{labels:wNumsEvol.map(n=>'S'+String(n).padStart(2,'0')),datasets:evolDatasets},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:true,labels:{color:'#E8DCC3',font:{size:9},boxWidth:8,padding:6,usePointStyle:true}}},
         scales:{
@@ -2035,74 +2036,84 @@ function loadInfoTab(){
 
 function renderGastosFijos(){
   const FIJOS=[
-    {
-      nombre:'Rent',
-      freq:'weekly',
-      freqLabel:'semanal',
-      match: g => g.categoria==='Rent' && g.subcategoria==='Rent'
-    },
-    {
-      nombre:'Phone',
-      freq:'monthly',
-      freqLabel:'mensual',
-      match: g => g.categoria==='Phone'
-    },
-    {
-      nombre:'Subscriptions',
-      freq:'monthly',
-      freqLabel:'mensual',
-      match: g => g.categoria==='Subscriptions'
-    },
-    {
-      nombre:'Eidico',
-      freq:'monthly',
-      freqLabel:'mensual',
-      match: g => g.categoria==='Eidico'
-    },
-    {
-      nombre:'Health Insurance',
-      freq:'monthly',
-      freqLabel:'mensual',
-      match: g => g.categoria==='Health' && g.subcategoria==='Health Insurance'
-    }
+    { nombre:'Rent',           freq:'weekly',  match: g=>g.categoria==='Rent'&&g.subcategoria==='Rent' },
+    { nombre:'Phone',          freq:'monthly', match: g=>g.categoria==='Phone' },
+    { nombre:'Subscriptions',  freq:'monthly', match: g=>g.categoria==='Subscriptions' },
+    { nombre:'Eidico',         freq:'monthly', match: g=>g.categoria==='Eidico' },
+    { nombre:'Health Ins.',    freq:'monthly', match: g=>g.categoria==='Health'&&g.subcategoria==='Health Insurance' }
   ];
 
   const now=new Date();
-  // Semana actual: lunes a domingo
-  const dow=(now.getDay()+6)%7; // 0=lunes, 6=domingo
-  const monDate=new Date(now); monDate.setDate(now.getDate()-dow); monDate.setHours(0,0,0,0);
-  const sunDate=new Date(monDate); sunDate.setDate(monDate.getDate()+6);
-  const weekStart=monDate.toISOString().slice(0,10);
-  const weekEnd=sunDate.toISOString().slice(0,10);
-  // Mes actual
-  const monthStr=now.toISOString().slice(0,7);
+  const curYear=now.getFullYear();
+  const curMonth=now.getMonth()+1;   // 1-12
+  const curWeek=getISOWeek(now);
+
+  // Devuelve el lunes (YYYY-MM-DD) de la semana ISO dada
+  function isoWeekToMonday(year,week){
+    const jan4=new Date(Date.UTC(year,0,4));
+    const dow=(jan4.getUTCDay()+6)%7;
+    const mon=new Date(jan4);
+    mon.setUTCDate(jan4.getUTCDate()-dow+(week-1)*7);
+    return mon.toISOString().slice(0,10);
+  }
+
+  const MONTH_SHORT=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
   const list=document.getElementById('fixed-expenses-list');
   list.innerHTML='';
 
   FIJOS.forEach((gf,idx)=>{
-    let found=null;
+    const wrap=document.createElement('div');
+    wrap.style.cssText='padding:12px 0;'+(idx<FIJOS.length-1?'border-bottom:1px solid #1e1e1a;':'');
+
+    // Título + tipo
+    const title=document.createElement('div');
+    title.style.cssText='display:flex;align-items:baseline;gap:8px;margin-bottom:8px;';
+    title.innerHTML=`<span style="font-family:'DM Serif Display',Georgia,serif;font-size:16px;color:#E8DCC3;">${gf.nombre}</span>`+
+      `<span style="font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;">${gf.freq==='weekly'?'semanal':'mensual'}</span>`;
+    wrap.appendChild(title);
+
+    // Grid de chips
+    const grid=document.createElement('div');
+    grid.style.cssText='display:flex;flex-wrap:wrap;gap:5px;';
+
     if(gf.freq==='weekly'){
-      found=gastos.find(g=>g.fecha>=weekStart && g.fecha<=weekEnd && gf.match(g));
+      for(let w=1;w<=curWeek;w++){
+        const monStr=isoWeekToMonday(curYear,w);
+        const sunDate=new Date(monStr); sunDate.setDate(sunDate.getDate()+6);
+        const sunStr=sunDate.toISOString().slice(0,10);
+        const found=gastos.some(g=>g.fecha>=monStr&&g.fecha<=sunStr&&gf.match(g));
+        const isCur=w===curWeek;
+        const chip=document.createElement('div');
+        chip.title=`S${String(w).padStart(2,'0')}: ${monStr}`;
+        chip.style.cssText=`display:inline-flex;flex-direction:column;align-items:center;padding:3px 5px;border-radius:5px;min-width:30px;`+
+          `font-size:9px;line-height:1.3;cursor:default;`+
+          (found
+            ?'background:#1a3a22;color:#4dc878;border:1px solid #2a6a3a;'
+            :'background:#3a1a1a;color:#d85050;border:1px solid #6a2a2a;')+
+          (isCur?'box-shadow:0 0 0 2px #c0a060;':'');
+        chip.innerHTML=`<span>S${String(w).padStart(2,'0')}</span><span>${found?'✓':'✗'}</span>`;
+        grid.appendChild(chip);
+      }
     } else {
-      found=gastos.find(g=>g.fecha.startsWith(monthStr) && gf.match(g));
+      for(let m=1;m<=curMonth;m++){
+        const monthStr=`${curYear}-${String(m).padStart(2,'0')}`;
+        const found=gastos.some(g=>g.fecha.startsWith(monthStr)&&gf.match(g));
+        const isCur=m===curMonth;
+        const chip=document.createElement('div');
+        chip.style.cssText=`display:inline-flex;flex-direction:column;align-items:center;padding:3px 8px;border-radius:5px;min-width:36px;`+
+          `font-size:9px;line-height:1.3;cursor:default;`+
+          (found
+            ?'background:#1a3a22;color:#4dc878;border:1px solid #2a6a3a;'
+            :'background:#3a1a1a;color:#d85050;border:1px solid #6a2a2a;')+
+          (isCur?'box-shadow:0 0 0 2px #c0a060;':'');
+        chip.innerHTML=`<span>${MONTH_SHORT[m-1]}</span><span>${found?'✓':'✗'}</span>`;
+        grid.appendChild(chip);
+      }
     }
-    const ok=!!found;
 
-    const row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:10px 0;'+(idx<FIJOS.length-1?'border-bottom:1px solid #1e1e1a;':'');
-
-    const left=document.createElement('div');
-    left.innerHTML=`<div style="font-family:'DM Serif Display',Georgia,serif;font-size:16px;color:#E8DCC3;">${gf.nombre}</div>`+
-      `<div style="font-size:9px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-top:2px;">${gf.freqLabel}${found?' · '+found.fecha:''}</div>`;
-
-    const right=document.createElement('div');
-    right.style.cssText='font-size:22px;line-height:1;';
-    right.textContent=ok?'✅':'❌';
-
-    row.appendChild(left);
-    row.appendChild(right);
-    list.appendChild(row);
+    wrap.appendChild(grid);
+    list.appendChild(wrap);
   });
 }
 
