@@ -1675,28 +1675,34 @@ function renderDashVision() {
     }]
   });
 
-  // Dual line chart (al fondo): one set of lines per selected year
+  // Dual line chart: eje X = meses (Ene–Dic), una línea por año → comparativa superpuesta
   const YR_COLORS={'2024':'#6a9fd8','2025':'#d4b85a','2026':'#4ade80'};
   const YR_EG_COLORS={'2024':'#8a6ad8','2025':'#d4a020','2026':'#e07060'};
+  const MONTHS_AXIS=MNAMES; // ['Ene','Feb',...,'Dic']
   const lineDatasets=[];
   years.forEach(yr=>{
-    const yrKeys=allKeys.filter(k=>k.startsWith(yr));
+    // Para cada mes 1-12, buscar valor en mEg/mIn con clave YYYY-MM
+    const ingData=Array.from({length:12},(_,i)=>{
+      const k=`${yr}-${String(i+1).padStart(2,'0')}`;
+      return mIn[k]!=null?+mIn[k].toFixed(2):null;
+    });
+    const egrData=Array.from({length:12},(_,i)=>{
+      const k=`${yr}-${String(i+1).padStart(2,'0')}`;
+      return mEg[k]!=null?+mEg[k].toFixed(2):null;
+    });
     lineDatasets.push(
-      {label:`Ing ${yr}`,data:allKeys.map(k=>k.startsWith(yr)?+((mIn[k]||0).toFixed(2)):null),borderColor:YR_COLORS[yr]||'#4ade80',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.3,fill:false,spanGaps:false},
-      {label:`Egr ${yr}`,data:allKeys.map(k=>k.startsWith(yr)?+((mEg[k]||0).toFixed(2)):null),borderColor:YR_EG_COLORS[yr]||'#e07060',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.3,fill:false,spanGaps:false}
+      {label:`Ing ${yr}`,data:ingData,borderColor:YR_COLORS[yr]||'#4ade80',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.3,fill:false,spanGaps:false},
+      {label:`Egr ${yr}`,data:egrData,borderColor:YR_EG_COLORS[yr]||'#e07060',backgroundColor:'transparent',borderWidth:2,borderDash:yr!=='2026'?[4,3]:[],pointRadius:3,tension:0.3,fill:false,spanGaps:false}
     );
   });
   if(chartLineMensual) chartLineMensual.destroy();
   chartLineMensual=new Chart(document.getElementById('chart-line-mensual'),{
     type:'line',
-    data:{
-      labels:allKeys.map(k=>{const[y,m]=k.split('-');return MNAMES[parseInt(m)-1]+(multiYear?` '${y.slice(2)}`:'');}),
-      datasets:lineDatasets
-    },
+    data:{labels:MONTHS_AXIS,datasets:lineDatasets},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:true,labels:{color:'#E8DCC3',font:{size:9},boxWidth:8,padding:8}}},
       scales:{
-        x:{ticks:{color:'#9a8a6a',font:{size:9},maxRotation:45},grid:{color:'#1e1e18'},border:{color:'#2d6b4a'}},
+        x:{ticks:{color:'#9a8a6a',font:{size:9}},grid:{color:'#1e1e18'},border:{color:'#2d6b4a'}},
         y:{ticks:{color:'#9a8a6a',font:{size:10},callback:v=>'$'+v.toFixed(0)},grid:{color:'#252520'},border:{color:'#2d6b4a'}}
       }}
   });
