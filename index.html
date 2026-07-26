@@ -2022,14 +2022,24 @@ function showTab(tab) {
 }
 
 function loadInfoTab(){
-  function fmtTs(ts){
-    if(!ts) return '—';
-    const d=new Date(ts);
-    return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  // Derivar fechas directamente de los datos reales (Google Sheets)
+  // gastos e ingresos ya están ordenados por fecha desc
+  const lastExpPablo = gastos.find(g=>g.tipo==='pablo'||g.tipo==='compartido');
+  const lastExpJulieta = gastos.find(g=>g.tipo==='julieta'||g.tipo==='compartido');
+  const lastIncPablo = ingresos[0];
+
+  function fmtFechaInfo(fechaIso){
+    if(!fechaIso) return '—';
+    // Mostrar como "Lun 14/07/26"
+    const [y,m,d]=fechaIso.split('-');
+    const dt=new Date(parseInt(y),parseInt(m)-1,parseInt(d));
+    const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    return dias[dt.getDay()]+' '+d+'/'+m+'/'+y.slice(-2);
   }
-  document.getElementById('info-last-exp-pablo').textContent=fmtTs(localStorage.getItem('vgn_last_exp_pablo'));
-  document.getElementById('info-last-exp-julieta').textContent=fmtTs(localStorage.getItem('vgn_last_exp_julieta'));
-  document.getElementById('info-last-inc-pablo').textContent=fmtTs(localStorage.getItem('vgn_last_inc_pablo'));
+
+  document.getElementById('info-last-exp-pablo').textContent=fmtFechaInfo(lastExpPablo?.fecha);
+  document.getElementById('info-last-exp-julieta').textContent=fmtFechaInfo(lastExpJulieta?.fecha);
+  document.getElementById('info-last-inc-pablo').textContent=fmtFechaInfo(lastIncPablo?.fecha);
   document.getElementById('info-notes').value=localStorage.getItem('vgn_notes')||'';
   renderGastosFijos();
 }
