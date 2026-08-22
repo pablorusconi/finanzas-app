@@ -137,6 +137,22 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 .td-right{text-align:right;font-family:'DM Serif Display',Georgia,serif;font-size:13px;}
 .td-accent{color:#4db87a;}
 .dash-placeholder{text-align:center;padding:3rem 1rem;color:#333;font-size:11px;letter-spacing:3px;text-transform:uppercase;font-style:italic;border:1px dashed #252520;border-radius:3px;}
+/* ─── Gastos Fijos Tab ─── */
+.gf-year-chips{display:flex;gap:6px;margin-bottom:1rem;}
+.gf-year-chip{flex:1;padding:9px 0;font-size:12px;text-align:center;cursor:pointer;border:1px solid #2d6b4a;border-radius:3px;background:#141412;color:#555;font-family:'DM Sans',sans-serif;letter-spacing:2px;text-transform:uppercase;transition:all 0.15s;}
+.gf-year-chip.active{background:#2d6b4a;color:#E8DCC3;}
+.gf-year-chip:hover:not(.active){border-color:#4db87a;color:#9a8a6a;}
+.gf-table-wrap{overflow-x:auto;}
+.gf-table{border-collapse:collapse;font-size:11px;min-width:100%;}
+.gf-table th{color:#2d8a52;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:5px 6px;text-align:center;border-bottom:1px solid #2d6b4a;font-weight:400;white-space:nowrap;}
+.gf-table th.gf-name-col{text-align:left;min-width:96px;}
+.gf-table td{padding:6px 6px;text-align:center;border-bottom:1px solid #1e1e1a;font-size:14px;}
+.gf-table td.gf-name-col{text-align:left;color:#E8DCC3;font-size:10px;letter-spacing:0.5px;white-space:nowrap;font-family:'DM Sans',sans-serif;}
+.gf-table tr:last-child td{border-bottom:none;}
+.gf-cell-ok{color:#4dc878;}
+.gf-cell-miss{color:#d85050;opacity:0.7;}
+.gf-cell-future{color:#2a2a24;}
+.gf-cur-col{background:rgba(192,160,96,0.06);}
 /* ─── Year chips ─── */
 .dash-year-chips{display:flex;gap:6px;margin-bottom:0.75rem;}
 .dash-year-chip{flex:1;padding:9px 0;font-size:12px;text-align:center;cursor:pointer;border:1px solid #2d6b4a;border-radius:3px;background:#141412;color:#555;font-family:'DM Sans',sans-serif;letter-spacing:2px;text-transform:uppercase;transition:all 0.15s;}
@@ -297,6 +313,10 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
       <button class="nav-item" id="nav-dash" onclick="showTab('dash')">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7M17.5 14v7"/></svg>
         Dash
+      </button>
+      <button class="nav-item" id="nav-gastosfijos" onclick="showTab('gastosfijos')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+        Fijos
       </button>
       <button class="nav-item" id="nav-info" onclick="showTab('info')">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
@@ -490,6 +510,20 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
         </div>
       </div>
     </div>
+    <!-- ─── GASTOS FIJOS TAB ─── -->
+    <div id="tab-gastosfijos" style="display:none;">
+      <div class="gf-year-chips">
+        <button class="gf-year-chip" id="gf-chip-2025" onclick="setGFYear('2025')">2025</button>
+        <button class="gf-year-chip active" id="gf-chip-2026" onclick="setGFYear('2026')">2026</button>
+      </div>
+      <div class="chart-card" style="padding:0.75rem 0.75rem 0.5rem;">
+        <div class="chart-title" style="margin-bottom:10px;">Presencia por mes</div>
+        <div class="gf-table-wrap">
+          <table class="gf-table" id="gf-table"></table>
+        </div>
+      </div>
+    </div>
+
     <!-- ─── INFO TAB ─── -->
     <div id="tab-info" style="display:none;">
       <div class="card">
@@ -2018,13 +2052,14 @@ async function guardarEdicionIngreso() {
 }
 
 function showTab(tab) {
-  ['cargar','historial','saldo','ingresos','dash','info'].forEach(t=>{
+  ['cargar','historial','saldo','ingresos','dash','gastosfijos','info'].forEach(t=>{
     document.getElementById('tab-'+t).style.display=t===tab?'block':'none';
     const navBtn=document.getElementById('nav-'+t);
     if(navBtn) navBtn.className='nav-item'+(t===tab?' active':'');
   });
   if(tab==='dash') showDashTab('vision');
   if(tab==='info') loadInfoTab();
+  if(tab==='gastosfijos') renderGastosFijosTab();
 }
 
 function loadInfoTab(){
@@ -2135,6 +2170,83 @@ function renderGastosFijos(){
 
 function saveNotes(val){
   localStorage.setItem('vgn_notes',val);
+}
+
+// ─── GASTOS FIJOS TAB ────────────────────────────────────────────────────────
+let gfYear='2026';
+
+function setGFYear(y){
+  gfYear=y;
+  ['2025','2026'].forEach(yr=>{
+    const c=document.getElementById('gf-chip-'+yr);
+    if(c) c.className='gf-year-chip'+(yr===y?' active':'');
+  });
+  renderGastosFijosTab();
+}
+
+function renderGastosFijosTab(){
+  const FIJOS=[
+    { nombre:'YouTube',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='YouTube' },
+    { nombre:'Netflix',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Netflix' },
+    { nombre:'Spotify',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Spotify' },
+    { nombre:'HBO Max',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='HBO Max' },
+    { nombre:'ChatGPT',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='ChatGPT' },
+    { nombre:'Claude',       match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Claude' },
+    { nombre:'Google',       match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Google' },
+    { nombre:'Banking BBVA', match:g=>g.categoria==='Banking'&&g.subcategoria==='BBVA' },
+    { nombre:'Rent',         match:g=>g.categoria==='Rent'&&g.subcategoria==='Rent' },
+    { nombre:'Phone',        match:g=>g.categoria==='Phone' },
+    { nombre:'Health Ins.',  match:g=>g.categoria==='Health'&&g.subcategoria==='Health Insurance' },
+    { nombre:'Eidico',       match:g=>g.categoria==='Eidico' },
+  ];
+
+  const MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const now=new Date();
+  const curYear=now.getFullYear();
+  const curMonth=now.getMonth()+1;
+
+  // Source: 2026 = gastos array; 2025/2024 = gastosHistorico filtered
+  const source=gfYear==='2026'
+    ? gastos
+    : gastosHistorico.filter(g=>g.fecha.startsWith(gfYear));
+
+  // How many months to show as real data vs future
+  const isCurrentYear=parseInt(gfYear)===curYear;
+  const maxRealMonth=isCurrentYear ? curMonth : 12;
+
+  const table=document.getElementById('gf-table');
+  if(!table) return;
+
+  // Build header
+  let html='<thead><tr><th class="gf-name-col">Gasto</th>';
+  for(let m=1;m<=12;m++){
+    const isCur=isCurrentYear&&m===curMonth;
+    html+=`<th${isCur?' style="color:#c0a060;"':''}>${MONTHS[m-1]}</th>`;
+  }
+  html+='</tr></thead><tbody>';
+
+  // Build rows
+  FIJOS.forEach(fijo=>{
+    html+=`<tr><td class="gf-name-col">${fijo.nombre}</td>`;
+    for(let m=1;m<=12;m++){
+      const monthStr=`${gfYear}-${String(m).padStart(2,'0')}`;
+      const isCur=isCurrentYear&&m===curMonth;
+      if(m>maxRealMonth){
+        html+=`<td class="gf-cell-future${isCur?' gf-cur-col':''}">·</td>`;
+      } else {
+        const entries=source.filter(g=>g.fecha.startsWith(monthStr)&&fijo.match(g));
+        const found=entries.length>0;
+        // Build tooltip with amount if found
+        const total=entries.reduce((s,g)=>s+(g.monto||0),0);
+        const tip=found?`$${total.toFixed(2)}`:'';
+        html+=`<td class="${found?'gf-cell-ok':'gf-cell-miss'}${isCur?' gf-cur-col':''}" title="${tip}">${found?'✓':'✗'}</td>`;
+      }
+    }
+    html+='</tr>';
+  });
+
+  html+='</tbody>';
+  table.innerHTML=html;
 }
 </script>
 </body>
