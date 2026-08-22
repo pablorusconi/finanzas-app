@@ -137,6 +137,35 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
 .td-right{text-align:right;font-family:'DM Serif Display',Georgia,serif;font-size:13px;}
 .td-accent{color:#4db87a;}
 .dash-placeholder{text-align:center;padding:3rem 1rem;color:#333;font-size:11px;letter-spacing:3px;text-transform:uppercase;font-style:italic;border:1px dashed #252520;border-radius:3px;}
+/* ─── Portfolio Tab ─── */
+.pf-nw-card{background:#1c1c18;border:1px solid #2d6b4a;border-radius:4px;padding:1.25rem;margin-bottom:1rem;text-align:center;}
+.pf-nw-label{font-size:10px;color:#2d8a52;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;}
+.pf-nw-amount{font-family:'DM Serif Display',Georgia,serif;font-size:44px;color:#E8DCC3;line-height:1;}
+.pf-nw-delta{font-size:13px;margin-top:8px;letter-spacing:1px;font-style:italic;}
+.pf-nw-delta.pos{color:#4dc878;}
+.pf-nw-delta.neg{color:#d85050;}
+.pf-nw-delta.flat{color:#555;}
+.pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;}
+.pf-kpi{background:#141412;border:1px solid #2d6b4a;border-radius:3px;padding:10px 12px;}
+.pf-kpi-label{font-size:9px;color:#2d8a52;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+.pf-kpi-value{font-family:'DM Serif Display',Georgia,serif;font-size:20px;color:#E8DCC3;}
+.pf-section-title{font-size:10px;color:#2d8a52;letter-spacing:3px;text-transform:uppercase;margin:1rem 0 0.5rem;}
+.pf-alloc-bar{height:10px;border-radius:5px;background:#1c1c18;border:1px solid #2d6b4a;overflow:hidden;display:flex;margin-bottom:1rem;}
+.pf-alloc-seg{height:100%;transition:width 0.4s;}
+.pf-alloc-legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem;}
+.pf-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:#999;letter-spacing:0.5px;}
+.pf-legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.pf-asset-table{width:100%;border-collapse:collapse;font-size:12px;}
+.pf-asset-table th{color:#2d8a52;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:5px 8px;text-align:left;border-bottom:1px solid #2d6b4a;font-weight:400;}
+.pf-asset-table th:last-child,.pf-asset-table td:last-child{text-align:right;}
+.pf-asset-table td{padding:7px 8px;border-bottom:1px solid #1e1e1a;color:#E8DCC3;font-size:11px;}
+.pf-asset-table tr:last-child td{border-bottom:none;}
+.pf-asset-cat{color:#555;font-size:9px;letter-spacing:1px;text-transform:uppercase;}
+.pf-pl-pos{color:#4dc878;}
+.pf-pl-neg{color:#d85050;}
+.pf-empty{text-align:center;padding:2.5rem 1rem;color:#333;font-size:11px;letter-spacing:3px;text-transform:uppercase;font-style:italic;border:1px dashed #252520;border-radius:3px;}
+.pf-refresh-btn{width:100%;padding:10px;font-size:11px;border:1px solid #2d6b4a;border-radius:3px;background:transparent;color:#555;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:3px;text-transform:uppercase;transition:all 0.15s;margin-bottom:1rem;}
+.pf-refresh-btn:hover{border-color:#4db87a;color:#E8DCC3;}
 /* ─── Gastos Fijos Tab ─── */
 .gf-year-chips{display:flex;gap:6px;margin-bottom:1rem;}
 .gf-year-chip{flex:1;padding:9px 0;font-size:12px;text-align:center;cursor:pointer;border:1px solid #2d6b4a;border-radius:3px;background:#141412;color:#555;font-family:'DM Sans',sans-serif;letter-spacing:2px;text-transform:uppercase;transition:all 0.15s;}
@@ -314,6 +343,10 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7M17.5 14v7"/></svg>
         Dash
       </button>
+      <button class="nav-item" id="nav-portfolio" onclick="showTab('portfolio')">
+        <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        Portfolio
+      </button>
       <button class="nav-item" id="nav-gastosfijos" onclick="showTab('gastosfijos')">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
         Fijos
@@ -464,7 +497,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
           <div style="position:relative;height:200px;"><canvas id="chart-line-mensual"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Mes · Ingresos · Egresos · Diferencia</div>
+          <div class="chart-title">Mes · Ingresos · Egresos · Savings</div>
           <div style="overflow-x:auto;"><table class="dash-table" id="dash-tabla-mensual"></table></div>
         </div>
         <div class="chart-card">
@@ -510,6 +543,49 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: #141412; min-hei
         </div>
       </div>
     </div>
+    <!-- ─── PORTFOLIO TAB ─── -->
+    <div id="tab-portfolio" style="display:none;">
+      <button class="pf-refresh-btn" onclick="loadPortfolio(true)">↻ Actualizar datos</button>
+
+      <!-- Net Worth principal -->
+      <div class="pf-nw-card">
+        <div class="pf-nw-label">Net Worth</div>
+        <div class="pf-nw-amount" id="pf-nw-amount">—</div>
+        <div class="pf-nw-delta flat" id="pf-nw-delta">cargando...</div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="pf-grid" id="pf-kpis"></div>
+
+      <!-- Asset allocation bar -->
+      <div class="pf-section-title">Asset Allocation</div>
+      <div class="pf-alloc-bar" id="pf-alloc-bar"></div>
+      <div class="pf-alloc-legend" id="pf-alloc-legend"></div>
+
+      <!-- Tabla de activos -->
+      <div class="pf-section-title">Activos</div>
+      <div class="chart-card" style="padding:0.75rem 0;">
+        <div style="overflow-x:auto;">
+          <table class="pf-asset-table" id="pf-asset-table">
+            <thead><tr>
+              <th>Ítem</th><th>Categoría</th><th>Valor AUD</th>
+            </tr></thead>
+            <tbody id="pf-asset-body">
+              <tr><td colspan="3" class="pf-empty">— sin datos —</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Evolución Net Worth -->
+      <div class="pf-section-title">Evolución Net Worth</div>
+      <div class="chart-card">
+        <div style="position:relative;height:200px;">
+          <canvas id="pf-chart-nw"></canvas>
+        </div>
+      </div>
+    </div>
+
     <!-- ─── GASTOS FIJOS TAB ─── -->
     <div id="tab-gastosfijos" style="display:none;">
       <div class="gf-year-chips">
@@ -1538,7 +1614,7 @@ function renderDashVision() {
   document.getElementById('dash-kpi-vision').innerHTML=
     `<div class="dash-kpi"><div class="dash-kpi-label">Ingresos</div><div class="dash-kpi-value" style="color:#4ade80">${fmt(totIn)}</div></div>`+
     `<div class="dash-kpi"><div class="dash-kpi-label">Egresos</div><div class="dash-kpi-value" style="color:#e07060">${fmt(totEg)}</div></div>`+
-    `<div class="dash-kpi"><div class="dash-kpi-label">Diferencia</div><div class="dash-kpi-value" style="color:${dc}">${diff>=0?'+':'-'}${fmt(Math.abs(diff))}</div></div>`;
+    `<div class="dash-kpi"><div class="dash-kpi-label">Savings</div><div class="dash-kpi-value" style="color:${dc}">${diff>=0?'+':'-'}${fmt(Math.abs(diff))}</div></div>`;
 
   // Monthly table
   let acum=0;
@@ -2052,7 +2128,7 @@ async function guardarEdicionIngreso() {
 }
 
 function showTab(tab) {
-  ['cargar','historial','saldo','ingresos','dash','gastosfijos','info'].forEach(t=>{
+  ['cargar','historial','saldo','ingresos','dash','portfolio','gastosfijos','info'].forEach(t=>{
     document.getElementById('tab-'+t).style.display=t===tab?'block':'none';
     const navBtn=document.getElementById('nav-'+t);
     if(navBtn) navBtn.className='nav-item'+(t===tab?' active':'');
@@ -2060,6 +2136,7 @@ function showTab(tab) {
   if(tab==='dash') showDashTab('vision');
   if(tab==='info') loadInfoTab();
   if(tab==='gastosfijos') renderGastosFijosTab();
+  if(tab==='portfolio') loadPortfolio(false);
 }
 
 function loadInfoTab(){
@@ -2170,6 +2247,200 @@ function renderGastosFijos(){
 
 function saveNotes(val){
   localStorage.setItem('vgn_notes',val);
+}
+
+// ─── PORTFOLIO TAB ───────────────────────────────────────────────────────────
+let pfLoaded=false;
+let pfChartNW=null;
+
+const PF_COLORS={
+  'Cash':'#6a9fd8',
+  'Investments':'#4dc878',
+  'Property':'#d4b85a',
+  'Physical':'#a07850',
+  'Superannuation':'#9a7fd8',
+  'Liabilities':'#d85050'
+};
+
+async function loadPortfolio(force=false){
+  if(pfLoaded&&!force) return;
+  try{
+    const token=await getAccessToken();
+    const h={Authorization:'Bearer '+token};
+    const enc=s=>encodeURIComponent(s);
+
+    const [bsRes, snapsRes] = await Promise.all([
+      fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${enc('Balance Sheet')}!A1:H50`,{headers:h}),
+      fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${enc('Snapshots')}!A1:G50`,{headers:h})
+    ]);
+
+    const bsData=await bsRes.json();
+    const snapsData=await snapsRes.json();
+
+    renderPortfolio(bsData.values||[], snapsData.values||[]);
+    pfLoaded=true;
+  } catch(e){
+    console.error('[Portfolio]',e);
+  }
+}
+
+function renderPortfolio(bsRows, snapRows){
+  // Parse Balance Sheet — skip header, separators, totals
+  const assets=[], liabilities=[];
+  bsRows.slice(1).forEach(r=>{
+    const cat=r[0]||'', type=r[2]||'', item=r[3]||'', valRaw=r[4]||'', costRaw=r[5]||'';
+    if(!type||type==='Type') return;
+    if(cat.startsWith('──')||cat.startsWith('TOTAL')||cat==='NET WORTH') return;
+    const val=parseFloat(String(valRaw).replace(/[,$]/g,''))||0;
+    const cost=parseFloat(String(costRaw).replace(/[,$]/g,''))||0;
+    if(type==='Asset') assets.push({cat,sub:r[1]||'',item,val,cost});
+    else if(type==='Liability') liabilities.push({cat,sub:r[1]||'',item,val,cost});
+  });
+
+  const totalAssets=assets.reduce((s,a)=>s+a.val,0);
+  const totalLiab=liabilities.reduce((s,l)=>s+l.val,0);
+  const netWorth=totalAssets-totalLiab;
+
+  // Snapshot anterior (penúltima fila de datos)
+  const snapDataRows=snapRows.slice(1).filter(r=>r[3]&&parseFloat(r[3])>0);
+  const prevNW=snapDataRows.length>=2 ? parseFloat(snapDataRows[snapDataRows.length-2][3])||0 : 0;
+  const delta=prevNW>0 ? netWorth-prevNW : 0;
+
+  // Net Worth card
+  const nwEl=document.getElementById('pf-nw-amount');
+  const deltaEl=document.getElementById('pf-nw-delta');
+  if(nwEl) nwEl.textContent=totalAssets===0?'—':fmtPF(netWorth);
+  if(deltaEl){
+    if(totalAssets===0){deltaEl.textContent='completá Balance Sheet en Google Sheets';deltaEl.className='pf-nw-delta flat';}
+    else if(prevNW===0){deltaEl.textContent='sin snapshot anterior';deltaEl.className='pf-nw-delta flat';}
+    else{
+      const sign=delta>=0?'+':'';
+      deltaEl.textContent=`${sign}${fmtPF(delta)} vs snapshot anterior`;
+      deltaEl.className='pf-nw-delta '+(delta>=0?'pos':'neg');
+    }
+  }
+
+  // Savings rate (de los datos de gastos/ingresos actuales)
+  const now=new Date();
+  const yrStr=String(now.getFullYear());
+  const mnStr=yrStr+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const incomeYTD=ingresos.filter(i=>i.fecha.startsWith(yrStr)).reduce((s,i)=>s+i.net,0);
+  const gastosYTD=gastos.filter(g=>g.fecha.startsWith(yrStr)&&g.tipo!=='transferencia').reduce((s,g)=>s+g.monto,0);
+  const savingsYTD=incomeYTD-gastosYTD;
+  const savingsRate=incomeYTD>0?(savingsYTD/incomeYTD*100):0;
+
+  // KPIs
+  const kpisEl=document.getElementById('pf-kpis');
+  if(kpisEl) kpisEl.innerHTML=
+    `<div class="pf-kpi"><div class="pf-kpi-label">Total Activos</div><div class="pf-kpi-value">${totalAssets>0?fmtPF(totalAssets):'—'}</div></div>`+
+    `<div class="pf-kpi"><div class="pf-kpi-label">Total Pasivos</div><div class="pf-kpi-value" style="color:${totalLiab>0?'#d85050':'#4dc878'}">${fmtPF(totalLiab)}</div></div>`+
+    `<div class="pf-kpi"><div class="pf-kpi-label">Savings Rate ${yrStr}</div><div class="pf-kpi-value" style="color:${savingsRate>=20?'#4dc878':savingsRate>=10?'#d4b85a':'#d85050'}">${incomeYTD>0?savingsRate.toFixed(1)+'%':'—'}</div></div>`+
+    `<div class="pf-kpi"><div class="pf-kpi-label">Savings ${yrStr}</div><div class="pf-kpi-value" style="color:${savingsYTD>=0?'#4dc878':'#d85050'}">${incomeYTD>0?fmtPF(savingsYTD):'—'}</div></div>`;
+
+  // Allocation bar
+  const catTotals={};
+  assets.forEach(a=>{
+    const c=a.cat||'Other';
+    catTotals[c]=(catTotals[c]||0)+a.val;
+  });
+  const barEl=document.getElementById('pf-alloc-bar');
+  const legEl=document.getElementById('pf-alloc-legend');
+  if(barEl&&legEl&&totalAssets>0){
+    barEl.innerHTML='';
+    legEl.innerHTML='';
+    Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).forEach(([cat,val])=>{
+      const pct=(val/totalAssets*100).toFixed(1);
+      const color=PF_COLORS[cat]||'#666';
+      const seg=document.createElement('div');
+      seg.className='pf-alloc-seg';
+      seg.style.cssText=`width:${pct}%;background:${color};`;
+      seg.title=`${cat}: ${pct}%`;
+      barEl.appendChild(seg);
+      legEl.innerHTML+=`<div class="pf-legend-item"><div class="pf-legend-dot" style="background:${color}"></div>${cat} ${pct}%</div>`;
+    });
+  } else if(barEl){
+    barEl.innerHTML='<div style="width:100%;background:#1c1c18;height:100%;"></div>';
+  }
+
+  // Tabla activos
+  const tbody=document.getElementById('pf-asset-body');
+  if(tbody){
+    if(assets.length===0&&liabilities.length===0){
+      tbody.innerHTML='<tr><td colspan="3" class="pf-empty">Completá los valores en "Balance Sheet" en Google Sheets</td></tr>';
+    } else {
+      let html='';
+      // Group by category
+      const cats=[...new Set(assets.map(a=>a.cat))];
+      cats.forEach(cat=>{
+        const catAssets=assets.filter(a=>a.cat===cat&&a.val>0);
+        if(!catAssets.length) return;
+        const color=PF_COLORS[cat]||'#666';
+        html+=`<tr><td colspan="3" style="padding:10px 8px 4px;font-size:9px;color:${color};letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid #1e1e1a;">${cat}</td></tr>`;
+        catAssets.forEach(a=>{
+          const pl=a.cost>0?a.val-a.cost:null;
+          const plHtml=pl!==null?` <span style="font-size:10px;" class="${pl>=0?'pf-pl-pos':'pf-pl-neg'}">(${pl>=0?'+':''}${fmtPF(pl)})</span>`:'';
+          html+=`<tr><td>${a.item}</td><td class="pf-asset-cat">${a.sub}</td><td style="text-align:right;font-family:'DM Serif Display',Georgia,serif;">${fmtPF(a.val)}${plHtml}</td></tr>`;
+        });
+      });
+      // Totals row
+      html+=`<tr style="border-top:1px solid #2d6b4a;">
+        <td style="padding-top:10px;font-size:10px;letter-spacing:1px;color:#2d8a52;">TOTAL ACTIVOS</td>
+        <td></td>
+        <td style="padding-top:10px;text-align:right;font-family:'DM Serif Display',Georgia,serif;color:#4dc878;">${fmtPF(totalAssets)}</td>
+      </tr>`;
+      if(totalLiab>0){
+        html+=`<tr><td style="font-size:10px;letter-spacing:1px;color:#d85050;">TOTAL PASIVOS</td><td></td><td style="text-align:right;font-family:'DM Serif Display',Georgia,serif;color:#d85050;">${fmtPF(totalLiab)}</td></tr>`;
+        html+=`<tr><td style="font-size:11px;letter-spacing:1px;color:#E8DCC3;font-weight:500;">NET WORTH</td><td></td><td style="text-align:right;font-family:'DM Serif Display',Georgia,serif;font-size:16px;">${fmtPF(netWorth)}</td></tr>`;
+      }
+      tbody.innerHTML=html;
+    }
+  }
+
+  // Chart evolución
+  const snapDates=snapDataRows.map(r=>r[0]||'');
+  const snapNWs=snapDataRows.map(r=>parseFloat(r[3])||0);
+  const chartEl=document.getElementById('pf-chart-nw');
+  if(chartEl){
+    if(pfChartNW) pfChartNW.destroy();
+    if(snapDates.length<2){
+      chartEl.parentElement.innerHTML='<div class="pf-empty" style="height:160px;display:flex;align-items:center;justify-content:center;">Agregá más snapshots para ver la evolución</div>';
+    } else {
+      pfChartNW=new Chart(chartEl,{
+        type:'line',
+        data:{
+          labels:snapDates,
+          datasets:[{
+            label:'Net Worth',
+            data:snapNWs,
+            borderColor:'#4db87a',
+            backgroundColor:'rgba(77,184,122,0.08)',
+            borderWidth:2,
+            pointRadius:4,
+            pointBackgroundColor:'#4db87a',
+            fill:true,
+            tension:0.3
+          }]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtPF(ctx.parsed.y)}}},
+          scales:{
+            x:{ticks:{color:'#555',font:{size:10}},grid:{color:'#1e1e1a'}},
+            y:{ticks:{color:'#555',font:{size:10},callback:v=>fmtPF(v)},grid:{color:'#1e1e1a'}}
+          }
+        }
+      });
+    }
+  }
+}
+
+function fmtPF(n){
+  const abs=Math.abs(n);
+  let s;
+  if(abs>=1000000) s='$'+(abs/1000000).toFixed(2)+'M';
+  else if(abs>=1000) s='$'+(abs/1000).toFixed(1)+'k';
+  else s='$'+abs.toFixed(0);
+  return n<0?'-'+s:s;
 }
 
 // ─── GASTOS FIJOS TAB ────────────────────────────────────────────────────────
