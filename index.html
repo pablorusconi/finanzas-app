@@ -1812,7 +1812,13 @@ function getISOWeek(date) {
 function renderDashVision() {
   if(!document.getElementById('dash-kpi-vision')) return;
 
-  const allG=[...gastosHistorico,...gastos];
+  // Dedup: si un gasto existe en ambas fuentes (mismo fecha+monto+cat+subcat),
+  // gastosHistorico tiene prioridad; se descarta el duplicado de gastos (Expenses 2026)
+  const _seenG=new Set();
+  const allG=[...gastosHistorico,...gastos].filter(g=>{
+    const k=`${g.fecha}|${g.monto}|${g.categoria}|${g.subcategoria}`;
+    if(_seenG.has(k))return false; _seenG.add(k); return true;
+  });
   const allI=[...ingresosHistorico,...ingresos];
   const years=[...selectedYears].sort();
   const multiYear=years.length>1;
@@ -2044,7 +2050,12 @@ function renderDashSemanales() {
   const period=selectedPeriod;
   const years=[...selectedYears].sort();
   const multiYear=years.length>1;
-  const allG=[...gastosHistorico,...gastos];
+  // Dedup: misma lógica que renderDashVision
+  const _seenGs=new Set();
+  const allG=[...gastosHistorico,...gastos].filter(g=>{
+    const k=`${g.fecha}|${g.monto}|${g.categoria}|${g.subcategoria}`;
+    if(_seenGs.has(k))return false; _seenGs.add(k); return true;
+  });
   const allI=[...ingresosHistorico,...ingresos];
 
   // ── Build per-year data ──────────────────────────────────────────────────────
