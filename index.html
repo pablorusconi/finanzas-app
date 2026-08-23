@@ -31,7 +31,7 @@
   --c-subtle: #9C968D;
   --c-accent: #1A6B3C;
   --c-accent-bright: #1A8A40;
-  --c-accent-bg: #E8F5EE;
+  --c-accent-bg: #DFF0E8;
   --c-blue: #2060A0;
   --c-blue-bg: #EAF1FA;
   --c-gold: #7A5C10;
@@ -44,6 +44,10 @@
   --c-pink: #A02870;
   --c-pink-bg: #FAEAF2;
   --c-pink-border: #E0A0C0;
+  /* Active / filled button states */
+  --c-active-bg: #1A6B3C;
+  --c-active-text: #FFFFFF;
+  --c-active-hover: #155730;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -56,6 +60,7 @@
     --c-red: #d86a6a; --c-red-light: #d85050; --c-red-bg: #3d1a1a; --c-red-border: #8a2d2d;
     --c-green: #4dc878;
     --c-pink: #d86a9f; --c-pink-bg: #3d1a2a; --c-pink-border: #6b2a4a;
+    --c-active-bg: #2d6b4a; --c-active-text: #E8DCC3; --c-active-hover: #3a8060;
   }
 }
 :root[data-theme="dark"] {
@@ -68,6 +73,7 @@
   --c-red: #d86a6a; --c-red-light: #d85050; --c-red-bg: #3d1a1a; --c-red-border: #8a2d2d;
   --c-green: #4dc878;
   --c-pink: #d86a9f; --c-pink-bg: #3d1a2a; --c-pink-border: #6b2a4a;
+  --c-active-bg: #2d6b4a; --c-active-text: #E8DCC3; --c-active-hover: #3a8060;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'DM Sans', Georgia, sans-serif; background: var(--c-bg); min-height: 100vh; color: var(--c-text); font-size: 16px; }
@@ -112,8 +118,8 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: var(--c-bg); min
 .payer-btn:last-child { border-right: none; }
 .payer-btn.active-pablo { background: var(--c-blue-bg); color: var(--c-blue); }
 .payer-btn.active-julieta { background: var(--c-pink-bg); color: var(--c-pink); }
-.submit-btn { width: 100%; padding: 13px; font-size: 13px; border: 1px solid var(--c-accent); border-radius: 3px; background: var(--c-accent-bg); color: var(--c-text); cursor: pointer; margin-top: 4px; font-family: 'DM Sans', sans-serif; letter-spacing: 4px; text-transform: uppercase; transition: all 0.15s; }
-.submit-btn:hover { background: var(--c-border); }
+.submit-btn { width: 100%; padding: 13px; font-size: 13px; border: 1px solid var(--c-active-bg); border-radius: 3px; background: var(--c-active-bg); color: var(--c-active-text); cursor: pointer; margin-top: 4px; font-family: 'DM Sans', sans-serif; letter-spacing: 4px; text-transform: uppercase; transition: all 0.15s; }
+.submit-btn:hover { background: var(--c-active-hover); border-color: var(--c-active-hover); }
 .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .expense-item { background: var(--c-surface); border: 1px solid var(--c-border-sub); border-radius: 3px; padding: 8px 11px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 5px; transition: border-color 0.15s; }
 .expense-item:hover { border-color: var(--c-border); }
@@ -131,15 +137,15 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: var(--c-bg); min
 .filter-chips { display: flex; gap: 4px; flex-wrap: wrap; }
 .filter-chip { padding: 4px 10px; font-size: 10px; border: 1px solid var(--c-border-sub); border-radius: 12px; background: transparent; color: var(--c-muted); cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; }
 .filter-chip:hover { border-color: var(--c-border); color: var(--c-subtle); }
-.filter-chip.active[data-filter="todos"] { background: var(--c-accent-bg); color: var(--c-accent-bright); border-color: var(--c-border); }
+.filter-chip.active[data-filter="todos"] { background: var(--c-accent-bg); color: var(--c-accent); border-color: var(--c-accent-bright); }
 .filter-chip.active[data-filter="pablo"] { background: var(--c-blue-bg); color: var(--c-blue); border-color: var(--c-blue-bg); }
 .filter-chip.active[data-filter="julieta"] { background: var(--c-pink-bg); color: var(--c-pink); border-color: var(--c-pink-border); }
-.filter-chip.active[data-filter="compartido"] { background: var(--c-accent-bg); color: var(--c-accent-bright); border-color: var(--c-border); }
+.filter-chip.active[data-filter="compartido"] { background: var(--c-accent-bg); color: var(--c-accent); border-color: var(--c-accent-bright); }
 .filter-chip.active[data-filter="transferencia"] { background: var(--c-gold-bg); color: var(--c-gold); border-color: var(--c-gold-bg); }
 .sort-btn { padding: 3px 9px; font-size: 10px; border: 1px solid var(--c-border-sub); border-radius: 12px; background: transparent; color: var(--c-muted); cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; }
 .sort-btn:hover { border-color: var(--c-border); color: var(--c-subtle); }
-.sort-btn.active { background: var(--c-accent-bg); color: var(--c-accent-bright); border-color: var(--c-border); }
-.badge-compartido { background: var(--c-accent-bg); color: var(--c-accent-bright); border: 1px solid var(--c-border); }
+.sort-btn.active { background: var(--c-accent-bg); color: var(--c-accent); border-color: var(--c-accent-bright); }
+.badge-compartido { background: var(--c-accent-bg); color: var(--c-accent); border: 1px solid var(--c-accent-bg); }
 .badge-pablo { background: var(--c-blue-bg); color: var(--c-blue); border: 1px solid var(--c-blue-bg); }
 .badge-julieta { background: var(--c-pink-bg); color: var(--c-pink); border: 1px solid var(--c-pink-border); }
 .badge-transferencia { background: var(--c-gold-bg); color: var(--c-gold); border: 1px solid var(--c-gold-bg); }
@@ -175,13 +181,13 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: var(--c-bg); min
 .confirm-btn-cancel { flex: 1; padding: 11px; font-size: 12px; border: 1px solid var(--c-border); border-radius: 3px; background: transparent; color: var(--c-muted); cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 2px; text-transform: uppercase; transition: all 0.15s; }
 .confirm-btn-cancel:hover { color: var(--c-text); border-color: var(--c-text); }
 .confirm-btn-delete { flex: 1; padding: 11px; font-size: 12px; border: 1px solid var(--c-red-border); border-radius: 3px; background: var(--c-red-bg); color: var(--c-red); cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 2px; text-transform: uppercase; transition: all 0.15s; }
-.confirm-btn-delete:hover { background: #5a2020; }
+.confirm-btn-delete:hover { background: var(--c-red); color: var(--c-active-text); }
 .confirm-btn-delete:disabled { opacity: 0.4; cursor: not-allowed; }
 /* ─── DASHBOARD ─── */
 .dash-subtab-bar{display:flex;gap:0;border:1px solid var(--c-border);border-radius:3px;overflow:hidden;margin-bottom:1rem;}
 .dash-subtab{flex:1;padding:8px 0;font-size:10px;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--c-subtle);font-family:'DM Sans',sans-serif;letter-spacing:2px;text-transform:uppercase;border-right:1px solid var(--c-border);transition:all 0.15s;}
 .dash-subtab:last-child{border-right:none;}
-.dash-subtab.active{background:var(--c-border);color:var(--c-text);}
+.dash-subtab.active{background:var(--c-active-bg);color:var(--c-active-text);}
 .dash-filter-row{display:flex;gap:8px;margin-bottom:1rem;}
 .dash-filter-select{flex:1;padding:8px 10px;font-size:12px;border:1px solid var(--c-border);border-radius:3px;background:var(--c-bg);color:var(--c-text);font-family:'DM Sans',sans-serif;letter-spacing:1px;outline:none;}
 .dash-kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;}
@@ -195,7 +201,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: var(--c-bg); min
 .dash-table td{padding:7px 8px;border-bottom:1px solid var(--c-border-sub);color:var(--c-text);}
 .dash-table tr:last-child td{border-bottom:none;}
 .td-right{text-align:right;font-family:'DM Serif Display',Georgia,serif;font-size:13px;}
-.td-accent{color:var(--c-accent-bright);}
+.td-accent{color:var(--c-green);}
 .dash-placeholder{text-align:center;padding:3rem 1rem;color:var(--c-border-sub);font-size:11px;letter-spacing:3px;text-transform:uppercase;font-style:italic;border:1px dashed var(--c-border-sub);border-radius:3px;}
 /* ─── Portfolio Tab ─── */
 .pf-nw-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:4px;padding:1.25rem;margin-bottom:1rem;text-align:center;}
@@ -229,7 +235,7 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: var(--c-bg); min
 /* ─── Gastos Fijos Tab ─── */
 .gf-year-chips{display:flex;gap:6px;margin-bottom:1rem;}
 .gf-year-chip{flex:1;padding:9px 0;font-size:12px;text-align:center;cursor:pointer;border:1px solid var(--c-border);border-radius:3px;background:var(--c-bg);color:var(--c-subtle);font-family:'DM Sans',sans-serif;letter-spacing:2px;text-transform:uppercase;transition:all 0.15s;}
-.gf-year-chip.active{background:var(--c-border);color:var(--c-text);}
+.gf-year-chip.active{background:var(--c-active-bg);color:var(--c-active-text);}
 .gf-year-chip:hover:not(.active){border-color:var(--c-accent-bright);color:var(--c-muted);}
 .gf-table-wrap{overflow-x:auto;}
 .gf-table{border-collapse:collapse;font-size:11px;min-width:100%;}
@@ -245,13 +251,13 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: var(--c-bg); min
 /* ─── Year chips ─── */
 .dash-year-chips{display:flex;gap:6px;margin-bottom:0.75rem;}
 .dash-year-chip{flex:1;padding:9px 0;font-size:12px;text-align:center;cursor:pointer;border:1px solid var(--c-border);border-radius:3px;background:var(--c-bg);color:var(--c-subtle);font-family:'DM Sans',sans-serif;letter-spacing:2px;text-transform:uppercase;transition:all 0.15s;}
-.dash-year-chip.active{background:var(--c-border);color:var(--c-text);}
+.dash-year-chip.active{background:var(--c-active-bg);color:var(--c-active-text);}
 .dash-year-chip:hover:not(.active){border-color:var(--c-accent-bright);color:var(--c-muted);}
 /* ─── Period filter ─── */
 .dash-period-bar{display:flex;gap:0;border:1px solid var(--c-border);border-radius:3px;overflow:hidden;margin-bottom:1rem;}
 .dash-period-btn{flex:1;padding:8px 0;font-size:10px;text-align:center;cursor:pointer;border:none;border-right:1px solid var(--c-border);background:transparent;color:var(--c-subtle);font-family:'DM Sans',sans-serif;letter-spacing:1px;text-transform:uppercase;transition:all 0.15s;}
 .dash-period-btn:last-child{border-right:none;}
-.dash-period-btn.active{background:var(--c-border);color:var(--c-text);}
+.dash-period-btn.active{background:var(--c-active-bg);color:var(--c-active-text);}
 /* ─── Category filter chips ─── */
 .dash-cat-filter{margin-bottom:1rem;}
 .dash-cat-filter-label{font-size:10px;color:var(--c-subtle);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
