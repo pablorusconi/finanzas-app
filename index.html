@@ -249,6 +249,11 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: var(--c-bg); min
 .gf-cell-future{color:var(--c-border-sub);}
 .gf-cell-inactive{color:#5a9fd4;opacity:0.85;}
 .gf-cur-col{background:rgba(192,160,96,0.06);}
+.gf-avg-col{text-align:right;min-width:72px;border-right:1px solid var(--c-border);padding-right:10px;}
+.gf-avg-cell{text-align:right;font-size:10px;font-family:'DM Sans',sans-serif;color:var(--c-muted);border-right:1px solid var(--c-border);padding-right:10px;letter-spacing:0.3px;}
+.gf-total-row td{border-top:1px solid var(--c-border);border-bottom:none;padding-top:8px;padding-bottom:6px;}
+.gf-total-label{text-align:left;color:var(--c-accent);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-family:'DM Sans',sans-serif;}
+.gf-total-avg{color:var(--c-text)!important;font-size:11px!important;font-weight:600;}
 /* ─── Year chips ─── */
 .dash-year-chips{display:flex;gap:6px;margin-bottom:0.75rem;}
 .dash-year-chip{flex:1;padding:9px 0;font-size:12px;text-align:center;cursor:pointer;border:1px solid var(--c-border);border-radius:3px;background:var(--c-bg);color:var(--c-subtle);font-family:'DM Sans',sans-serif;letter-spacing:2px;text-transform:uppercase;transition:all 0.15s;}
@@ -2689,18 +2694,18 @@ function setGFYear(y){
 
 function renderGastosFijosTab(){
   const FIJOS=[
-    { nombre:'YouTube',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='YouTube' },
-    { nombre:'Netflix',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Netflix' },
-    { nombre:'Spotify',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Spotify' },
-    { nombre:'HBO Max',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='HBO Max',  inactive:(yr,m)=>yr==='2025'&&m<=10 },
+    { nombre:'Eidico',       match:g=>g.categoria==='Eidico' },
+    { nombre:'Health Ins.',  match:g=>g.categoria==='Health'&&g.subcategoria==='Health Insurance' },
+    { nombre:'Rent',         match:g=>g.categoria==='Rent'&&g.subcategoria==='Rent' },
+    { nombre:'Phone',        match:g=>g.categoria==='Phone' },
+    { nombre:'Banking BBVA', match:g=>g.categoria==='Banking'&&g.subcategoria==='BBVA' },
     { nombre:'ChatGPT',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='ChatGPT', inactive:(yr,m)=>(yr==='2026'&&m>=4)||parseInt(yr)>2026 },
     { nombre:'Claude',       match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Claude',   inactive:(yr,m)=>yr==='2025'||(yr==='2026'&&m<=2) },
     { nombre:'Google',       match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Google' },
-    { nombre:'Banking BBVA', match:g=>g.categoria==='Banking'&&g.subcategoria==='BBVA' },
-    { nombre:'Rent',         match:g=>g.categoria==='Rent'&&g.subcategoria==='Rent' },
-    { nombre:'Phone',        match:g=>g.categoria==='Phone' },
-    { nombre:'Health Ins.',  match:g=>g.categoria==='Health'&&g.subcategoria==='Health Insurance' },
-    { nombre:'Eidico',       match:g=>g.categoria==='Eidico' },
+    { nombre:'HBO Max',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='HBO Max',  inactive:(yr,m)=>yr==='2025'&&m<=10 },
+    { nombre:'Netflix',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Netflix' },
+    { nombre:'Spotify',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Spotify' },
+    { nombre:'YouTube',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='YouTube' },
   ];
 
   const MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -2718,11 +2723,25 @@ function renderGastosFijosTab(){
   const isCurrentYear=parseInt(gfYear)===curYear;
   const maxRealMonth=isCurrentYear ? curMonth : 12;
 
+  // ── Avg 2026: always computed from gastos (2026 source), only active months ──
+  const maxReal2026=curYear===2026?curMonth:curYear>2026?12:0;
+  function calcAvg2026(fijo){
+    let total=0, active=0;
+    for(let m=1;m<=maxReal2026;m++){
+      if(fijo.inactive?.('2026',m)) continue;
+      active++;
+      const ms=`2026-${String(m).padStart(2,'0')}`;
+      gastos.filter(g=>g.fecha.startsWith(ms)&&fijo.match(g))
+            .forEach(g=>{ total+=(g.monto||0); });
+    }
+    return active>0?total/active:null;
+  }
+
   const table=document.getElementById('gf-table');
   if(!table) return;
 
   // Build header
-  let html='<thead><tr><th class="gf-name-col">Gasto</th>';
+  let html='<thead><tr><th class="gf-name-col">Gasto</th><th class="gf-avg-col">Prom. 2026</th>';
   for(let m=1;m<=12;m++){
     const isCur=isCurrentYear&&m===curMonth;
     html+=`<th${isCur?' style="color:#c0a060;"':''}>${MONTHS[m-1]}</th>`;
@@ -2730,8 +2749,12 @@ function renderGastosFijosTab(){
   html+='</tr></thead><tbody>';
 
   // Build rows
+  let grandTotal=0;
   FIJOS.forEach(fijo=>{
-    html+=`<tr><td class="gf-name-col">${fijo.nombre}</td>`;
+    const avg=calcAvg2026(fijo);
+    if(avg!=null) grandTotal+=avg;
+    const avgStr=avg!=null?`$${avg.toFixed(2)}`:'—';
+    html+=`<tr><td class="gf-name-col">${fijo.nombre}</td><td class="gf-avg-cell">${avgStr}</td>`;
     for(let m=1;m<=12;m++){
       const monthStr=`${gfYear}-${String(m).padStart(2,'0')}`;
       const isCur=isCurrentYear&&m===curMonth;
@@ -2750,6 +2773,9 @@ function renderGastosFijosTab(){
     }
     html+='</tr>';
   });
+
+  // Total row
+  html+=`<tr class="gf-total-row"><td class="gf-name-col gf-total-label">Total mensual</td><td class="gf-avg-cell gf-total-avg">$${grandTotal.toFixed(2)}</td><td colspan="12"></td></tr>`;
 
   html+='</tbody>';
   table.innerHTML=html;
@@ -2780,18 +2806,18 @@ function renderGastosFijosChips(){
   const MONTH_SHORT=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
   const FIJOS=[
-    { nombre:'Rent',       freq:'weekly',  section:null,            match:g=>g.categoria==='Rent'&&g.subcategoria==='Rent' },
-    { nombre:'Phone',      freq:'monthly', section:null,            match:g=>g.categoria==='Phone' },
-    { nombre:'YouTube',    freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='YouTube' },
-    { nombre:'Netflix',    freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Netflix' },
-    { nombre:'Spotify',    freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Spotify' },
-    { nombre:'HBO Max',    freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='HBO Max',  inactive:(yr,m)=>yr==='2025'&&m<=10 },
-    { nombre:'ChatGPT',    freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='ChatGPT', inactive:(yr,m)=>(yr==='2026'&&m>=4)||parseInt(yr)>2026 },
-    { nombre:'Claude',     freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Claude',   inactive:(yr,m)=>yr==='2025'||(yr==='2026'&&m<=2) },
-    { nombre:'Google',     freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Google' },
-    { nombre:'Banking BBVA',freq:'monthly', section:null,            match:g=>g.categoria==='Banking'&&g.subcategoria==='BBVA' },
-    { nombre:'Eidico',     freq:'monthly', section:null,            match:g=>g.categoria==='Eidico' },
-    { nombre:'Health Ins.',freq:'monthly', section:null,            match:g=>g.categoria==='Health'&&g.subcategoria==='Health Insurance' },
+    { nombre:'Eidico',       freq:'monthly', section:null,            match:g=>g.categoria==='Eidico' },
+    { nombre:'Health Ins.',  freq:'monthly', section:null,            match:g=>g.categoria==='Health'&&g.subcategoria==='Health Insurance' },
+    { nombre:'Rent',         freq:'weekly',  section:null,            match:g=>g.categoria==='Rent'&&g.subcategoria==='Rent' },
+    { nombre:'Phone',        freq:'monthly', section:null,            match:g=>g.categoria==='Phone' },
+    { nombre:'Banking BBVA', freq:'monthly', section:null,            match:g=>g.categoria==='Banking'&&g.subcategoria==='BBVA' },
+    { nombre:'ChatGPT',      freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='ChatGPT', inactive:(yr,m)=>(yr==='2026'&&m>=4)||parseInt(yr)>2026 },
+    { nombre:'Claude',       freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Claude',   inactive:(yr,m)=>yr==='2025'||(yr==='2026'&&m<=2) },
+    { nombre:'Google',       freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Google' },
+    { nombre:'HBO Max',      freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='HBO Max',  inactive:(yr,m)=>yr==='2025'&&m<=10 },
+    { nombre:'Netflix',      freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Netflix' },
+    { nombre:'Spotify',      freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Spotify' },
+    { nombre:'YouTube',      freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='YouTube' },
   ];
 
   const container=document.getElementById('gf-chips-section');
