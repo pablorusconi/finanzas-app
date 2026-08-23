@@ -2696,10 +2696,11 @@ function renderGastosFijosTab(){
   const curYear=now.getFullYear();
   const curMonth=now.getMonth()+1;
 
-  // Source: 2026 = gastos array; 2025/2024 = gastosHistorico filtered
+  // Source: 2026 = gastos array; 2025/2024 = histórico + entradas con esa fecha en gastos (cargadas por app)
   const source=gfYear==='2026'
     ? gastos
-    : gastosHistorico.filter(g=>g.fecha.startsWith(gfYear));
+    : [...gastosHistorico.filter(g=>g.fecha.startsWith(gfYear)),
+       ...gastos.filter(g=>g.fecha.startsWith(gfYear))];
 
   // How many months to show as real data vs future
   const isCurrentYear=parseInt(gfYear)===curYear;
@@ -2742,7 +2743,7 @@ function renderGastosFijosTab(){
 }
 
 function renderGastosFijosChips(){
-  const source=gfYear==='2026'?gastos:gastosHistorico.filter(g=>g.fecha.startsWith(gfYear));
+  const source=gfYear==='2026'?gastos:[...gastosHistorico.filter(g=>g.fecha.startsWith(gfYear)),...gastos.filter(g=>g.fecha.startsWith(gfYear))];
   const now=new Date();
   const curYear=now.getFullYear();
   const isCurrentYear=parseInt(gfYear)===curYear;
