@@ -1410,8 +1410,9 @@ function renderHistorial() {
     });
   }
 
-  if(historialTypeFilter!=='expenses'){
-    // Agregar incomes (con búsqueda)
+  if(historialTypeFilter!=='expenses' && (activeFilter==='todos' || historialTypeFilter==='incomes')){
+    // Agregar incomes (con búsqueda) — los filtros de tipo (pablo/julieta/compartido/transf.)
+    // son solo para expenses; si hay uno activo y no está en modo "INCOMES", se ocultan los ingresos
     ingresos.forEach((g,origIdx)=>{
       if(q && !(
         (g.category||'').toLowerCase().includes(q)||
