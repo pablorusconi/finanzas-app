@@ -396,6 +396,82 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: var(--c-bg); min
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
+/* ─── Light mode: labels/títulos en gris neutro, verde solo para interactivos ─── */
+:root:not([data-theme="dark"]) .balance-label,
+:root:not([data-theme="dark"]) .field label,
+:root:not([data-theme="dark"]) .stat-label,
+:root:not([data-theme="dark"]) .chart-title,
+:root:not([data-theme="dark"]) .dash-kpi-label,
+:root:not([data-theme="dark"]) .pf-nw-label,
+:root:not([data-theme="dark"]) .pf-kpi-label,
+:root:not([data-theme="dark"]) .pf-section-title,
+:root:not([data-theme="dark"]) .dash-cat-filter-label,
+:root:not([data-theme="dark"]) .dash-table th,
+:root:not([data-theme="dark"]) .pf-asset-table th,
+:root:not([data-theme="dark"]) .gf-table th,
+:root:not([data-theme="dark"]) .header-sub,
+:root:not([data-theme="dark"]) .expense-subcat,
+:root:not([data-theme="dark"]) .connecting-screen,
+:root:not([data-theme="dark"]) .pf-legend-item {
+  color: #6B665D;
+}
+/* Bordes de tablas en claro: más suaves */
+:root:not([data-theme="dark"]) .dash-table th,
+:root:not([data-theme="dark"]) .pf-asset-table th,
+:root:not([data-theme="dark"]) .gf-table th {
+  border-bottom-color: #DDD9D1;
+}
+/* Divider en claro: gris cálido */
+:root:not([data-theme="dark"]) .divider,
+:root:not([data-theme="dark"]) .divider::before,
+:root:not([data-theme="dark"]) .divider::after {
+  color: #C8C3BA;
+  background: #DDD9D1;
+}
+/* Header subtitle en claro */
+:root:not([data-theme="dark"]) .header-sub {
+  color: #8C8880;
+  letter-spacing: 2px;
+}
+/* Sombras más nítidas para cards en claro */
+:root:not([data-theme="dark"]) .card,
+:root:not([data-theme="dark"]) .chart-card,
+:root:not([data-theme="dark"]) .pf-nw-card {
+  border-color: #E8E4DC;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.03);
+}
+/* Stat-box / KPI box en claro: fondo ligeramente diferenciado */
+:root:not([data-theme="dark"]) .stat-box,
+:root:not([data-theme="dark"]) .dash-kpi,
+:root:not([data-theme="dark"]) .pf-kpi {
+  background: #F5F3EE;
+  border-color: #E4E0D8;
+}
+/* Inputs en claro: fondo blanco, borde sutil */
+:root:not([data-theme="dark"]) .field input,
+:root:not([data-theme="dark"]) .field select,
+:root:not([data-theme="dark"]) .search-input,
+:root:not([data-theme="dark"]) .dash-filter-select {
+  background: #FFFFFF;
+  border-color: #D6D1C7;
+}
+:root:not([data-theme="dark"]) .field input:focus,
+:root:not([data-theme="dark"]) .field select:focus,
+:root:not([data-theme="dark"]) .search-input:focus {
+  border-color: #1A6B3C;
+  box-shadow: 0 0 0 2px rgba(26,107,60,0.08);
+}
+/* Botón editar en claro */
+:root:not([data-theme="dark"]) .btn-edit {
+  color: #1A6B3C;
+  border-color: #C8DDD0;
+}
+:root:not([data-theme="dark"]) .btn-edit:hover {
+  background: #EEF7F2;
+}
+/* Gf-cell-future en claro: más visible */
+:root:not([data-theme="dark"]) .gf-cell-future { color: #C8C3BA; }
+
 /* Theme toggle button */
 .theme-toggle-btn {
   width: 100%; padding: 11px; font-size: 12px;
