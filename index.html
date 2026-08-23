@@ -779,6 +779,10 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: var(--c-bg); min
           <table class="gf-table" id="gf-table"></table>
         </div>
       </div>
+      <div class="chart-card" style="padding:0.75rem 0.75rem 0.75rem;margin-top:0.75rem;">
+        <div class="chart-title" style="margin-bottom:10px;">Detalle por gasto</div>
+        <div id="gf-chips-section"></div>
+      </div>
     </div>
 
     <!-- ─── INFO TAB ─── -->
@@ -805,10 +809,6 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: var(--c-bg); min
             <div id="info-last-inc-pablo" style="font-family:'DM Serif Display',Georgia,serif;font-size:18px;color:var(--c-text);">—</div>
           </div>
         </div>
-      </div>
-      <div class="card">
-        <div class="balance-label">Gastos Fijos</div>
-        <div id="fixed-expenses-list" style="margin-top:0.9rem;"></div>
       </div>
       <div class="card">
         <div class="balance-label">Notas rápidas</div>
@@ -2378,7 +2378,6 @@ function loadInfoTab(){
   document.getElementById('info-last-exp-julieta').textContent=fmtFechaInfo(lastExpJulieta?.fecha);
   document.getElementById('info-last-inc-pablo').textContent=fmtFechaInfo(lastIncPablo?.fecha);
   document.getElementById('info-notes').value=localStorage.getItem('vgn_notes')||'';
-  renderGastosFijos();
 }
 
 function renderGastosFijos(){
@@ -2737,6 +2736,108 @@ function renderGastosFijosTab(){
 
   html+='</tbody>';
   table.innerHTML=html;
+  renderGastosFijosChips();
+}
+
+function renderGastosFijosChips(){
+  const source=gfYear==='2026'?gastos:gastosHistorico.filter(g=>g.fecha.startsWith(gfYear));
+  const now=new Date();
+  const curYear=now.getFullYear();
+  const isCurrentYear=parseInt(gfYear)===curYear;
+  const curMonth=now.getMonth()+1;
+  const curWeek=getISOWeek(now);
+  const maxRealMonth=isCurrentYear?curMonth:12;
+
+  function isoWeeksInYear(y){
+    const d=new Date(Date.UTC(y,11,28));
+    return getISOWeek(d);
+  }
+  function isoWeekToMonday(year,week){
+    const jan4=new Date(Date.UTC(year,0,4));
+    const dow=(jan4.getUTCDay()+6)%7;
+    const mon=new Date(jan4);
+    mon.setUTCDate(jan4.getUTCDate()-dow+(week-1)*7);
+    return mon.toISOString().slice(0,10);
+  }
+  const maxWeeks=isCurrentYear?curWeek:isoWeeksInYear(parseInt(gfYear));
+  const MONTH_SHORT=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+  const FIJOS=[
+    { nombre:'Rent',       freq:'weekly',  section:null,            match:g=>g.categoria==='Rent'&&g.subcategoria==='Rent' },
+    { nombre:'Phone',      freq:'monthly', section:null,            match:g=>g.categoria==='Phone' },
+    { nombre:'YouTube',    freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='YouTube' },
+    { nombre:'Netflix',    freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Netflix' },
+    { nombre:'Spotify',    freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Spotify' },
+    { nombre:'HBO Max',    freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='HBO Max' },
+    { nombre:'ChatGPT',    freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='ChatGPT' },
+    { nombre:'Claude',     freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Claude' },
+    { nombre:'Google',     freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Google' },
+    { nombre:'Eidico',     freq:'monthly', section:null,            match:g=>g.categoria==='Eidico' },
+    { nombre:'Health Ins.',freq:'monthly', section:null,            match:g=>g.categoria==='Health'&&g.subcategoria==='Health Insurance' },
+  ];
+
+  const container=document.getElementById('gf-chips-section');
+  if(!container) return;
+  container.innerHTML='';
+  let lastSection=null;
+
+  FIJOS.forEach((gf,idx)=>{
+    // Encabezado de sección (solo para Subscriptions, primera vez)
+    if(gf.section && gf.section!==lastSection){
+      const secEl=document.createElement('div');
+      secEl.style.cssText='font-size:9px;color:var(--c-accent);letter-spacing:2px;text-transform:uppercase;padding:10px 0 4px;margin-top:4px;border-top:1px solid var(--c-border);';
+      secEl.textContent=gf.section;
+      container.appendChild(secEl);
+      lastSection=gf.section;
+    }
+
+    const wrap=document.createElement('div');
+    // Separador: entre secciones distintas y al final de subscriptions antes de Eidico
+    const nextSec=FIJOS[idx+1]?.section;
+    const showBorder=idx<FIJOS.length-1&&(gf.section!=='Subscriptions'||nextSec!=='Subscriptions');
+    wrap.style.cssText='padding:9px 0;'+(showBorder?'border-bottom:1px solid var(--c-border-sub);':'');
+
+    const title=document.createElement('div');
+    title.style.cssText='display:flex;align-items:baseline;gap:8px;margin-bottom:7px;';
+    title.innerHTML=`<span style="font-family:'DM Serif Display',Georgia,serif;font-size:15px;color:var(--c-text);">${gf.nombre}</span>`+
+      `<span style="font-size:9px;color:var(--c-subtle);letter-spacing:1px;text-transform:uppercase;">${gf.freq==='weekly'?'semanal':'mensual'}</span>`;
+    wrap.appendChild(title);
+
+    const grid=document.createElement('div');
+    grid.style.cssText='display:flex;flex-wrap:wrap;gap:4px;';
+
+    if(gf.freq==='weekly'){
+      for(let w=1;w<=maxWeeks;w++){
+        const monStr=isoWeekToMonday(parseInt(gfYear),w);
+        const sunDate=new Date(monStr); sunDate.setDate(sunDate.getDate()+6);
+        const sunStr=sunDate.toISOString().slice(0,10);
+        const found=source.some(g=>g.fecha>=monStr&&g.fecha<=sunStr&&gf.match(g));
+        const isCur=isCurrentYear&&w===curWeek;
+        const chip=document.createElement('div');
+        chip.title=`S${String(w).padStart(2,'0')}: ${monStr}`;
+        chip.style.cssText=`display:inline-flex;flex-direction:column;align-items:center;padding:3px 5px;border-radius:5px;min-width:30px;font-size:9px;line-height:1.3;cursor:default;`+
+          (found?'background:#1a3a22;color:#4dc878;border:1px solid #2a6a3a;':'background:#3a1a1a;color:#d85050;border:1px solid #6a2a2a;')+
+          (isCur?'box-shadow:0 0 0 2px #c0a060;':'');
+        chip.innerHTML=`<span>S${String(w).padStart(2,'0')}</span><span>${found?'✓':'✗'}</span>`;
+        grid.appendChild(chip);
+      }
+    } else {
+      for(let m=1;m<=maxRealMonth;m++){
+        const monthStr=`${gfYear}-${String(m).padStart(2,'0')}`;
+        const found=source.some(g=>g.fecha.startsWith(monthStr)&&gf.match(g));
+        const isCur=isCurrentYear&&m===curMonth;
+        const chip=document.createElement('div');
+        chip.style.cssText=`display:inline-flex;flex-direction:column;align-items:center;padding:3px 8px;border-radius:5px;min-width:36px;font-size:9px;line-height:1.3;cursor:default;`+
+          (found?'background:#1a3a22;color:#4dc878;border:1px solid #2a6a3a;':'background:#3a1a1a;color:#d85050;border:1px solid #6a2a2a;')+
+          (isCur?'box-shadow:0 0 0 2px #c0a060;':'');
+        chip.innerHTML=`<span>${MONTH_SHORT[m-1]}</span><span>${found?'✓':'✗'}</span>`;
+        grid.appendChild(chip);
+      }
+    }
+
+    wrap.appendChild(grid);
+    container.appendChild(wrap);
+  });
 }
 </script>
 </body>
