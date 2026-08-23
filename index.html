@@ -1317,7 +1317,7 @@ async function agregarGasto() {
   const categoria=isTransf?'Transferencia':document.getElementById('categoria').value;
   const subcategoria=isTransf?'Transferencia':document.getElementById('subcategoria').value;
   const descripcion=document.getElementById('descripcion').value;
-  if(!fecha||!monto||(!isTransf&&(!categoria||!subcategoria))){showToast('completá todos los campos',true);return;}
+  if(!fecha||!(monto>=0)||(!isTransf&&(!categoria||!subcategoria))){showToast('completá todos los campos',true);return;}
   const pA=isTransf?0:(tipoActual==='compartido'?monto/2:(tipoActual==='pablo'?monto:0));
   const jA=isTransf?0:(tipoActual==='compartido'?monto/2:(tipoActual==='julieta'?monto:0));
   const row=[fecha,monto,categoria,subcategoria,descripcion,tipoActual,payerActual,pA.toFixed(2),jA.toFixed(2)];
@@ -1590,7 +1590,7 @@ async function guardarEdicion() {
   const categoria=isTransf?'Transferencia':document.getElementById('edit-categoria').value;
   const subcategoria=isTransf?'Transferencia':document.getElementById('edit-subcategoria').value;
   const descripcion=document.getElementById('edit-descripcion').value;
-  if (!fecha||!monto||(!isTransf&&(!categoria||!subcategoria))){showToast('completá todos los campos',true);return;}
+  if (!fecha||!(monto>=0)||(!isTransf&&(!categoria||!subcategoria))){showToast('completá todos los campos',true);return;}
 
   const pA=isTransf?0:(editTipoActual==='compartido'?monto/2:(editTipoActual==='pablo'?monto:0));
   const jA=isTransf?0:(editTipoActual==='compartido'?monto/2:(editTipoActual==='julieta'?monto:0));
