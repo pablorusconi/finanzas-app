@@ -2732,7 +2732,7 @@ function renderGastosFijosTab(){
       active++;
       const ms=`2026-${String(m).padStart(2,'0')}`;
       gastos.filter(g=>g.fecha.startsWith(ms)&&fijo.match(g))
-            .forEach(g=>{ total+=(g.pablo_amount??g.monto||0); });
+            .forEach(g=>{ total+=((g.pablo_amount??g.monto)||0); });
     }
     return active>0?total/active:null;
   }
@@ -2766,7 +2766,7 @@ function renderGastosFijosTab(){
       } else {
         const entries=source.filter(g=>g.fecha.startsWith(monthStr)&&fijo.match(g));
         const found=entries.length>0;
-        const total=entries.reduce((s,g)=>s+(g.pablo_amount??g.monto||0),0);
+        const total=entries.reduce((s,g)=>s+((g.pablo_amount??g.monto)||0),0);
         const tip=found?`$${total.toFixed(2)}`:'';
         html+=`<td class="${found?'gf-cell-ok':'gf-cell-miss'}${isCur?' gf-cur-col':''}" title="${tip}">${found?'✓':'✗'}</td>`;
       }
