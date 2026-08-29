@@ -680,6 +680,10 @@ body { font-family: 'DM Sans', Georgia, sans-serif; background: var(--c-bg); min
       <!-- Dashboard Visión: ingresos + egresos combinados -->
       <div id="dash-vision">
         <div class="dash-kpi-grid" style="grid-template-columns:1fr 1fr 1fr;" id="dash-kpi-vision"></div>
+        <div class="dash-cat-filter">
+          <div class="dash-cat-filter-label">Incluir categorías</div>
+          <div class="dash-cat-chips" id="dash-cat-chips-vision"></div>
+        </div>
         <div class="chart-card">
           <div class="chart-title">Ingresos vs Egresos por mes</div>
           <div style="position:relative;height:200px;"><canvas id="chart-line-mensual"></canvas></div>
@@ -1016,15 +1020,17 @@ function setPeriod(p){
 }
 
 function initCatFilterChips(){
-  const wrap=document.getElementById('dash-cat-chips');
-  if(!wrap||wrap.children.length>0) return; // ya inicializado
-  Object.keys(categorias).forEach(cat=>{
-    const btn=document.createElement('button');
-    btn.className='dash-cat-chip'+(excludedCats.has(cat)?' excluded':'');
-    btn.dataset.cat=cat;
-    btn.textContent=cat;
-    btn.onclick=()=>toggleCatFilter(cat);
-    wrap.appendChild(btn);
+  ['dash-cat-chips','dash-cat-chips-vision'].forEach(id=>{
+    const wrap=document.getElementById(id);
+    if(!wrap||wrap.children.length>0) return;
+    Object.keys(categorias).forEach(cat=>{
+      const btn=document.createElement('button');
+      btn.className='dash-cat-chip'+(excludedCats.has(cat)?' excluded':'');
+      btn.dataset.cat=cat;
+      btn.textContent=cat;
+      btn.onclick=()=>toggleCatFilter(cat);
+      wrap.appendChild(btn);
+    });
   });
 }
 
@@ -1034,7 +1040,8 @@ function toggleCatFilter(cat){
   document.querySelectorAll('.dash-cat-chip').forEach(chip=>{
     chip.className='dash-cat-chip'+(excludedCats.has(chip.dataset.cat)?' excluded':'');
   });
-  renderDashSemanales();
+  if(document.getElementById('dash-vision')?.style.display!=='none') renderDashVision();
+  else renderDashSemanales();
 }
 
 function getCalendarMonths(period){
@@ -1718,7 +1725,7 @@ function showDashTab(tab) {
     document.getElementById('dash-'+t).style.display=t===tab?'block':'none';
     document.getElementById('dsubtab-'+t).className='dash-subtab'+(t===tab?' active':'');
   });
-  if(tab==='vision') renderDashVision();
+  if(tab==='vision') { initCatFilterChips(); renderDashVision(); }
   else if(tab==='semanales') { initCatFilterChips(); renderDashSemanales(); }
 }
 
@@ -1830,7 +1837,7 @@ function renderDashVision() {
   const multiYear=years.length>1;
 
   // Filter by selected years (combined)
-  const fG=allG.filter(g=>g.tipo!=='transferencia'&&g.tipo!=='julieta'&&years.some(y=>g.fecha.startsWith(y)));
+  const fG=allG.filter(g=>g.tipo!=='transferencia'&&g.tipo!=='julieta'&&!excludedCats.has(g.categoria)&&years.some(y=>g.fecha.startsWith(y)));
   const fI=allI.filter(g=>years.some(y=>g.fecha.startsWith(y)));
 
   // Monthly aggregation
