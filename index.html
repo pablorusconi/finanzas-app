@@ -2756,7 +2756,7 @@ function renderGastosFijosTab(){
   if(!table) return;
 
   // Build header
-  let html=`<thead><tr><th class="gf-name-col">Gasto</th><th class="gf-avg-col">Prom. ${gfYear}</th>`;
+  let html=`<thead><tr><th class="gf-name-col">Gasto</th><th class="gf-avg-col">Prom. ${gfYear}</th><th class="gf-avg-col">Sem. ${gfYear}</th>`;
   for(let m=1;m<=12;m++){
     const isCur=isCurrentYear&&m===curMonth;
     html+=`<th${isCur?' style="color:#c0a060;"':''}>${MONTHS[m-1]}</th>`;
@@ -2769,7 +2769,9 @@ function renderGastosFijosTab(){
     const avg=calcAvg(fijo,gfYear);
     if(avg!=null) grandTotal+=avg;
     const avgStr=avg!=null?`$${avg.toFixed(2)}`:'—';
-    html+=`<tr><td class="gf-name-col">${fijo.nombre}</td><td class="gf-avg-cell">${avgStr}</td>`;
+    const weeklyAvg=avg!=null?avg*12/52:null;
+    const weeklyStr=weeklyAvg!=null?`$${weeklyAvg.toFixed(2)}`:'—';
+    html+=`<tr><td class="gf-name-col">${fijo.nombre}</td><td class="gf-avg-cell">${avgStr}</td><td class="gf-avg-cell">${weeklyStr}</td>`;
     for(let m=1;m<=12;m++){
       const monthStr=`${gfYear}-${String(m).padStart(2,'0')}`;
       const isCur=isCurrentYear&&m===curMonth;
@@ -2790,7 +2792,7 @@ function renderGastosFijosTab(){
   });
 
   // Total row
-  html+=`<tr class="gf-total-row"><td class="gf-name-col gf-total-label">Total mensual</td><td class="gf-avg-cell gf-total-avg">$${grandTotal.toFixed(2)}</td><td colspan="12"></td></tr>`;
+  html+=`<tr class="gf-total-row"><td class="gf-name-col gf-total-label">Total mensual</td><td class="gf-avg-cell gf-total-avg">$${grandTotal.toFixed(2)}</td><td class="gf-avg-cell gf-total-avg">$${(grandTotal*12/52).toFixed(2)}</td><td colspan="12"></td></tr>`;
 
   html+='</tbody>';
   table.innerHTML=html;
