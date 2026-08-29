@@ -2695,11 +2695,11 @@ function setGFYear(y){
 function renderGastosFijosTab(){
   const FIJOS=[
     { nombre:'Eidico',       match:g=>g.categoria==='Eidico' },
-    { nombre:'Health Ins.',  match:g=>g.categoria==='Health'&&g.subcategoria==='Health Insurance' },
+    { nombre:'Health Ins.',  match:g=>g.categoria==='Health'&&g.subcategoria==='Health Insurance', inactive:(yr,m)=>(yr==='2025'&&(m<=3||m>=10)) },
     { nombre:'Rent',         match:g=>g.categoria==='Rent'&&g.subcategoria==='Rent' },
     { nombre:'Phone',        match:g=>g.categoria==='Phone' },
     { nombre:'Banking BBVA', match:g=>g.categoria==='Banking'&&g.subcategoria==='BBVA' },
-    { nombre:'ChatGPT',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='ChatGPT', inactive:(yr,m)=>(yr==='2026'&&m>=4)||parseInt(yr)>2026 },
+    { nombre:'ChatGPT',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='ChatGPT', inactive:(yr,m)=>(yr==='2025'&&m===1)||(yr==='2026'&&m>=4)||parseInt(yr)>2026 },
     { nombre:'Claude',       match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Claude',   inactive:(yr,m)=>yr==='2025'||(yr==='2026'&&m<=2) },
     { nombre:'Google',       match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Google' },
     { nombre:'HBO Max',      match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='HBO Max',  inactive:(yr,m)=>yr==='2025'&&m<=10 },
@@ -2723,25 +2723,40 @@ function renderGastosFijosTab(){
   const isCurrentYear=parseInt(gfYear)===curYear;
   const maxRealMonth=isCurrentYear ? curMonth : 12;
 
-  // ── Avg 2026: always computed from gastos (2026 source), only active months ──
-  const maxReal2026=curYear===2026?curMonth:curYear>2026?12:0;
-  function calcAvg2026(fijo){
+  // ── Avg dinámico según gfYear ──
+  function calcAvg(fijo, yr){
+    const src=yr==='2026'?gastos:[...gastosHistorico.filter(g=>g.fecha.startsWith(yr)),...gastos.filter(g=>g.fecha.startsWith(yr))];
+    const isCY=parseInt(yr)===curYear;
+    const maxMo=isCY?curMonth:12;
     let total=0, active=0;
-    for(let m=1;m<=maxReal2026;m++){
-      if(fijo.inactive?.('2026',m)) continue;
+    for(let m=1;m<=maxMo;m++){
+      if(fijo.inactive?.(yr,m)) continue;
       active++;
-      const ms=`2026-${String(m).padStart(2,'0')}`;
-      gastos.filter(g=>g.fecha.startsWith(ms)&&fijo.match(g))
-            .forEach(g=>{ total+=((g.pablo_amount??g.monto)||0); });
+      const ms=`${yr}-${String(m).padStart(2,'0')}`;
+      src.filter(g=>g.fecha.startsWith(ms)&&fijo.match(g))
+         .forEach(g=>{ total+=((g.pablo_amount??g.monto)||0); });
     }
     return active>0?total/active:null;
+  }
+
+  // ── Google 2025: cobertura acumulativa (pagó 2 periodos en un mes) ──
+  const googleCoveredMonths=new Set();
+  if(gfYear==='2025'){
+    const gSrc=[...gastosHistorico.filter(g=>g.fecha.startsWith('2025')),...gastos.filter(g=>g.fecha.startsWith('2025'))];
+    const gEntries=gSrc.filter(g=>g.categoria==='Subscriptions'&&g.subcategoria==='Google');
+    let cum=0;
+    for(let m=1;m<=12;m++){
+      const ms=`2025-${String(m).padStart(2,'0')}`;
+      cum+=gEntries.filter(g=>g.fecha.startsWith(ms)).length;
+      if(cum>=m) googleCoveredMonths.add(m);
+    }
   }
 
   const table=document.getElementById('gf-table');
   if(!table) return;
 
   // Build header
-  let html='<thead><tr><th class="gf-name-col">Gasto</th><th class="gf-avg-col">Prom. 2026</th>';
+  let html=`<thead><tr><th class="gf-name-col">Gasto</th><th class="gf-avg-col">Prom. ${gfYear}</th>`;
   for(let m=1;m<=12;m++){
     const isCur=isCurrentYear&&m===curMonth;
     html+=`<th${isCur?' style="color:#c0a060;"':''}>${MONTHS[m-1]}</th>`;
@@ -2751,7 +2766,7 @@ function renderGastosFijosTab(){
   // Build rows
   let grandTotal=0;
   FIJOS.forEach(fijo=>{
-    const avg=calcAvg2026(fijo);
+    const avg=calcAvg(fijo,gfYear);
     if(avg!=null) grandTotal+=avg;
     const avgStr=avg!=null?`$${avg.toFixed(2)}`:'—';
     html+=`<tr><td class="gf-name-col">${fijo.nombre}</td><td class="gf-avg-cell">${avgStr}</td>`;
@@ -2765,7 +2780,7 @@ function renderGastosFijosTab(){
         html+=`<td class="gf-cell-inactive${isCur?' gf-cur-col':''}" title="Inactivo">–</td>`;
       } else {
         const entries=source.filter(g=>g.fecha.startsWith(monthStr)&&fijo.match(g));
-        const found=entries.length>0;
+        const found=entries.length>0||(fijo.nombre==='Google'&&googleCoveredMonths.has(m));
         const total=entries.reduce((s,g)=>s+((g.pablo_amount??g.monto)||0),0);
         const tip=found?`$${total.toFixed(2)}`:'';
         html+=`<td class="${found?'gf-cell-ok':'gf-cell-miss'}${isCur?' gf-cur-col':''}" title="${tip}">${found?'✓':'✗'}</td>`;
@@ -2807,11 +2822,11 @@ function renderGastosFijosChips(){
 
   const FIJOS=[
     { nombre:'Eidico',       freq:'monthly', section:null,            match:g=>g.categoria==='Eidico' },
-    { nombre:'Health Ins.',  freq:'monthly', section:null,            match:g=>g.categoria==='Health'&&g.subcategoria==='Health Insurance' },
+    { nombre:'Health Ins.',  freq:'monthly', section:null,            match:g=>g.categoria==='Health'&&g.subcategoria==='Health Insurance', inactive:(yr,m)=>(yr==='2025'&&(m<=3||m>=10)) },
     { nombre:'Rent',         freq:'weekly',  section:null,            match:g=>g.categoria==='Rent'&&g.subcategoria==='Rent' },
     { nombre:'Phone',        freq:'monthly', section:null,            match:g=>g.categoria==='Phone' },
     { nombre:'Banking BBVA', freq:'monthly', section:null,            match:g=>g.categoria==='Banking'&&g.subcategoria==='BBVA' },
-    { nombre:'ChatGPT',      freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='ChatGPT', inactive:(yr,m)=>(yr==='2026'&&m>=4)||parseInt(yr)>2026 },
+    { nombre:'ChatGPT',      freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='ChatGPT', inactive:(yr,m)=>(yr==='2025'&&m===1)||(yr==='2026'&&m>=4)||parseInt(yr)>2026 },
     { nombre:'Claude',       freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Claude',   inactive:(yr,m)=>yr==='2025'||(yr==='2026'&&m<=2) },
     { nombre:'Google',       freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Google' },
     { nombre:'HBO Max',      freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='HBO Max',  inactive:(yr,m)=>yr==='2025'&&m<=10 },
@@ -2819,6 +2834,19 @@ function renderGastosFijosChips(){
     { nombre:'Spotify',      freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='Spotify' },
     { nombre:'YouTube',      freq:'monthly', section:'Subscriptions', match:g=>g.categoria==='Subscriptions'&&g.subcategoria==='YouTube' },
   ];
+
+  // Google 2025: cobertura acumulativa en chips
+  const googleCoveredMonths2=new Set();
+  if(gfYear==='2025'){
+    const gSrc2=[...gastosHistorico.filter(g=>g.fecha.startsWith('2025')),...gastos.filter(g=>g.fecha.startsWith('2025'))];
+    const gEnt2=gSrc2.filter(g=>g.categoria==='Subscriptions'&&g.subcategoria==='Google');
+    let cum2=0;
+    for(let m=1;m<=12;m++){
+      const ms2=`2025-${String(m).padStart(2,'0')}`;
+      cum2+=gEnt2.filter(g=>g.fecha.startsWith(ms2)).length;
+      if(cum2>=m) googleCoveredMonths2.add(m);
+    }
+  }
 
   const container=document.getElementById('gf-chips-section');
   if(!container) return;
@@ -2869,7 +2897,8 @@ function renderGastosFijosChips(){
       for(let m=1;m<=maxRealMonth;m++){
         const monthStr=`${gfYear}-${String(m).padStart(2,'0')}`;
         const isInactive=gf.inactive?.(gfYear,m)??false;
-        const found=!isInactive&&source.some(g=>g.fecha.startsWith(monthStr)&&gf.match(g));
+        const googleChipCovered=gf.nombre==='Google'&&gfYear==='2025'&&googleCoveredMonths2.has(m);
+        const found=!isInactive&&(source.some(g=>g.fecha.startsWith(monthStr)&&gf.match(g))||googleChipCovered);
         const isCur=isCurrentYear&&m===curMonth;
         const chip=document.createElement('div');
         chip.title=isInactive?'Inactivo':'';
