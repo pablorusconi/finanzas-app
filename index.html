@@ -2278,10 +2278,13 @@ function renderDashSemanales() {
     const tds=r.avgs.map(v=>`<td class="td-right" style="color:#e07060">${fmt(v)}</td>`).join('');
     return`<tr><td>${r.cat}</td>${tds}</tr>`;
   }).join('');
+  const colTotals=years.map((_,yi)=>cRows.reduce((s,r)=>s+r.avgs[yi],0));
+  const totalTds=colTotals.map(v=>`<td class="td-right" style="color:#e07060;font-weight:600;">${fmt(v)}</td>`).join('');
+  const totalRow=`<tr style="border-top:1px solid #3a3a30;"><td style="font-weight:600;color:var(--c-text);">Total</td>${totalTds}</tr>`;
   const emptyMsg=`<tr><td colspan="${years.length+1}" style="text-align:center;color:#444;font-style:italic;padding:14px">— sin datos —</td></tr>`;
   document.getElementById('dash-tabla-semanal').innerHTML=
     `<thead><tr><th>Categoría</th>${thYrs}</tr></thead>`+
-    `<tbody>${tbody||emptyMsg}</tbody>`;
+    `<tbody>${tbody?tbody+totalRow:emptyMsg}</tbody>`;
 }
 
 async function borrarIngreso(localIdx) {
